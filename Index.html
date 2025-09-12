@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dokter Arif Rahman</title>
   <style>
+    
     /* ====== Global Style ====== */
     body {
       margin: 0;
@@ -18,18 +19,23 @@
       color: inherit;
     }
 
+    
+
         /* ====== Navbar ====== */
-    .navbar {
-      position: sticky;   /* biar ikut pas scroll */
-      top: 0;
-      z-index: 1000;
-      background-color: #1a3c92;
-      padding: 25px 50px; /* dilebarin ke bawah */
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #fff;
-    }
+        
+.navbar {
+  position: sticky;   /* biar tetap di atas pas scroll */
+  top: 0;
+  z-index: 1000;
+  background-color: #1a3c92;
+  padding: 25px 50px;
+  display: flex;
+  justify-content: space-between; /* logo di kiri, menu di kanan */
+  align-items: center;
+  color: #fff;
+}
+
+    
     .navbar .logo {
       font-weight: bold;
       background-color: #f7c948;
@@ -218,16 +224,17 @@
 </head>
 <body>
 
-  <!-- ====== Navbar ====== -->
-  <nav class="navbar">
-    <div class="logo">dr. Arif Rahman, Sp.PD</div>
-    <ul>
-      <li><a href="#beranda">Beranda</a></li>
-      <li><a href="#jadwal">Jadwal Praktek</a></li>
-      <li><a href="Penyakit.html">Penyakit</a></li>
-      <li><a href="Pelayanan.html">Pelayanan</a></li>
-    </ul>
-  </nav>
+<!-- ====== Navbar ====== -->
+<nav class="navbar">
+  <div class="logo">dr. Arif Rahman, Sp.PD</div>
+  <ul>
+    <li><a href="#beranda">Beranda</a></li>
+    <li><a href="#jadwal">Jadwal Praktek</a></li>
+    <li><a href="Penyakit.html">Penyakit</a></li>
+    <li><a href="Pelayanan.html">Pelayanan</a></li>
+  </ul>
+</nav>
+
 
   <!-- ====== Beranda ====== -->
   <section id="beranda" class="hero">
