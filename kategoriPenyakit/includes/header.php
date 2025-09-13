@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Dokter - <?php echo isset($dokter) ? $dokter['nama'] : 'dr. Arif Rahman'; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         .navbar {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             padding: 0.5rem 0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
         
         .nav-container {
@@ -52,6 +57,9 @@
                 display: none;
             }
         }
+        body {
+            margin-top: 80px;
+        }
     </style>
 </head>
 <body>
@@ -61,10 +69,10 @@
                 <?php echo isset($dokter) ? $dokter['nama'] . ', ' . $dokter['gelar'] : 'dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua'; ?>
             </div>
             <ul class="nav-menu">
-                <li><a href="Index.php">Beranda</a></li>
-                <li><a href="Index.php#jadwal">Jadwal Praktek</a></li>
+                <li><a href="../Index.php">Beranda</a></li>
+                <li><a href="../Index.php#jadwal">Jadwal Praktek</a></li>
                 <li><a href="penyakit.php">Penyakit</a></li>
-                <li><a href="Pelayanan.php">Pelayanan</a></li>
+                <li><a href="../Pelayanan.php">Pelayanan</a></li>
             </ul>
         </div>
     </nav>
