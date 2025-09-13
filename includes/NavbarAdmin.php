@@ -46,6 +46,6 @@
       <li><a href="#beranda">Beranda</a></li>
       <li><a href="#jadwal">Jadwal Praktek</a></li>
       <li><a href="Penyakit.html">Penyakit Dalam</a></li>
-      <li><a href="Pelayanan.html">Pelayanan</a></li>
+      <li><a href="Pelayanan.php">Pelayanan</a></li>
     </ul>
   </nav>
