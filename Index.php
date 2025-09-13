@@ -1,6 +1,6 @@
 <?php 
-  include 'NavbarUser.php'; 
-  include 'Koneksi.php';
+  include 'includes/NavbarUser.php'; 
+  include 'config/Koneksi.php';
 ?>
 
 <!DOCTYPE html>
@@ -11,6 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dokter Arif Rahman</title>
   <style>
+    
     /* ====== Global Style ====== */
     body {
       margin: 0;
@@ -22,6 +23,51 @@
       text-decoration: none;
       color: inherit;
     }
+
+    
+
+        /* ====== Navbar ====== */
+        
+.navbar {
+  position: sticky;   /* biar tetap di atas pas scroll */
+  top: 0;
+  z-index: 1000;
+  background-color: #1a3c92;
+  padding: 25px 50px;
+  display: flex;
+  justify-content: space-between; /* logo di kiri, menu di kanan */
+  align-items: center;
+  color: #fff;
+}
+
+    
+    .navbar .logo {
+      font-weight: bold;
+      background-color: #f7c948;
+      padding: 8px 20px;
+      border-radius: 25px;
+      color: #1a237e;
+    }
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;  /* jarak antar menu lebih lega */
+      margin: 0;
+      padding: 0;
+    }
+    .navbar ul li a {
+      color: #fff;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 8px 16px;       /* kasih area klik */
+  border-radius: 5px;      /* biar smooth pas hover */
+      transition: all 0.3s ease;
+    }
+    .navbar ul li a:hover,
+.navbar ul li a:active {
+  background-color: #f7c948; /* kuning */
+  color: #1a237e;            /* teks biru tua */
+}
 
 
     /* ====== Section Beranda ====== */
@@ -194,7 +240,7 @@
       <a href="#" class="btn-profile">Lihat Profile</a>
     </div>
     <div class="hero-img">
-      <img src="dokter.png" alt="Foto Dokter">
+      <img src="assets/images/dokter.jpg" alt="Foto Dokter">
     </div>
   </section>
 
@@ -258,27 +304,7 @@
   </section>
 
   <!-- ====== Footer ====== -->
-  <footer>
-    <div class="footer">
-      <div class="left">
-        <h3>Dokter Spesialis Penyakit Dalam</h3>
-        <p>Melayani dengan sepenuh hati untuk kesehatan anda</p>
-        <a href="#">facebook.com/dokter</a>
-        <a href="#">@dokter (Instagram)</a>
-        <a href="#">@dokter (TikTok)</a>
-        <a href="#">youtube.com/dokter</a>
-      </div>
-      <div class="right">
-        <h3>Kontak Kami</h3>
-        <p>Jl. Kedungmundu No.24, Tembalang, Kota Semarang</p>
-        <p>0812-3456-7890</p>
-        <p>dokter@gmail.com</p>
-      </div>
-    </div>
-    <div class="copyright">
-      © 2025 Dokter Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua. Semua Hak Dilindungi.
-    </div>
-  </footer>
+  <?php include 'includes/footer.php'; ?>
 
 </body>
 </html>

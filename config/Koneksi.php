@@ -1,11 +1,28 @@
 <?php
-$host = "localhost:3307";
-$user = "root";
-$pass = "";
+// config/database.php
+class Database
+{
+    private $host = "localhost";
+    private $db_name = "databasers";
+    private $username = "root";
+    private $password = "";
+    public $conn;
 
-
-$conn = new mysqli($host, $user, $pass);
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
+    public function getConnection()
+    {
+        $this->conn = null;
+        try {
+            $this->conn = new PDO(
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                $this->username,
+                $this->password
+            );
+            $this->conn->exec("set names utf8");
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $exception) {
+            echo "Connection error: " . $exception->getMessage();
+        }
+        return $this->conn;
+    }
 }
 ?>
