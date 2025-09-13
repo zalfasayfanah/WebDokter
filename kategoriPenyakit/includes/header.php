@@ -7,72 +7,69 @@
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         .navbar {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 0.5rem 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: fixed;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
             z-index: 1000;
-        }
-        
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            background-color: #1a3c92;
+            padding: 25px 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 1rem;
+            color: #fff;
         }
         
-        .doctor-badge {
-            background: #fbbf24;
-            color: #1e3a8a;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
+        .navbar .logo {
             font-weight: bold;
-            font-size: 0.9rem;
+            background-color: #f7c948;
+            padding: 8px 20px;
+            border-radius: 25px;
+            color: #1a237e;
         }
         
-        .nav-menu {
-            display: flex;
+        .navbar ul {
             list-style: none;
-            gap: 2rem;
+            display: flex;
+            gap: 20px;
+            margin: 0;
+            padding: 0;
         }
         
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
+        .navbar ul li a {
+            color: #fff;
             font-weight: 500;
-            transition: color 0.3s;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
         }
         
-        .nav-menu a:hover {
-            color: #fbbf24;
+        .navbar ul li a:hover,
+        .navbar ul li a:active {
+            background-color: #f7c948;
+            color: #1a237e;
         }
         
         @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
+            .navbar {
+                padding: 15px 20px;
             }
-        }
-        body {
-            margin-top: 80px;
+            .navbar ul {
+                gap: 10px;
+            }
+            .navbar ul li a {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-container">
-            <div class="doctor-badge">
-                <?php echo isset($dokter) ? $dokter['nama'] . ', ' . $dokter['gelar'] : 'dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua'; ?>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="../Index.php">Beranda</a></li>
-                <li><a href="../Index.php#jadwal">Jadwal Praktek</a></li>
-                <li><a href="penyakit.php">Penyakit</a></li>
-                <li><a href="../Pelayanan.php">Pelayanan</a></li>
-            </ul>
-        </div>
+        <div class="logo">dr. Arif Rahman, Sp.PD</div>
+        <ul>
+            <li><a href="../Index.php">Beranda</a></li>
+            <li><a href="../Index.php#jadwal">Jadwal Praktek</a></li>
+            <li><a href="penyakit.php">Penyakit Dalam</a></li>
+            <li><a href="../Pelayanan.php">Pelayanan</a></li>
+        </ul>
     </nav>
