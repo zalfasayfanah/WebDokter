@@ -1,6 +1,6 @@
 <?php 
-  include 'NavbarAdmin.php'; 
-  include 'Koneksi.php';
+  include("../includes/NavbarAdmin.php");
+  include("../config/Koneksi.php");
 ?>
 
 <!DOCTYPE html>
