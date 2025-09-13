@@ -3,8 +3,6 @@
   include 'Koneksi.php';
 ?>
 
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -139,9 +137,10 @@
     <h1>LAYANAN KESEHATAN UNGGULAN OLEH DOKTER ARIF RAHMAN Sp.PD</h1>
     <p>
       Dapatkan layanan kesehatan lengkap untuk Anda dan keluarga bersama dr. Arif Rahman. 
-      Mulai dari Poliklinik Penyakit Dalam untuk pemeriksaan menyeluruh, Terapi Stemcell 
-      untuk membantu regenerasi sel tubuh, Home Care profesional yang nyaman di rumah Anda, 
-      hingga Telekonsultasi praktis yang bisa diakses kapan saja, di mana saja.
+      Mulai dari <strong>Poliklinik Penyakit Dalam</strong> untuk pemeriksaan menyeluruh, 
+      <strong>Terapi Stemcell</strong> untuk membantu regenerasi sel tubuh, 
+      <strong>Home Care</strong> profesional yang nyaman di rumah Anda, 
+      hingga <strong>Telekonsultasi</strong> praktis yang bisa diakses kapan saja, di mana saja.
     </p>
   </div>
 
