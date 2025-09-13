@@ -1,6 +1,6 @@
 <?php 
-  include 'NavbarUser.php'; 
-  include 'Koneksi.php';
+  include 'includes/NavbarUser.php'; 
+  include 'config/Koneksi.php';
 ?>
 
 <!DOCTYPE html>
