@@ -1,3 +1,10 @@
+<?php 
+  include 'NavbarUser.php'; 
+  include 'Koneksi.php';
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -126,17 +133,6 @@
   </style>
 </head>
 <body>
-
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="logo">dr. Arif Rahman, Sp.PD</div>
-    <ul>
-      <li><a href="#">Beranda</a></li>
-      <li><a href="#">Jadwal Praktek</a></li>
-      <li><a href="#">Penyakit</a></li>
-      <li><a href="#">Pelayanan</a></li>
-    </ul>
-  </nav>
 
   <!-- Hero -->
   <div class="hero">

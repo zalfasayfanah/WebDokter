@@ -1,3 +1,8 @@
+<?php 
+  include 'NavbarUser.php'; 
+  include 'Koneksi.php';
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -19,6 +24,7 @@
       color: inherit;
     }
 
+<<<<<<< HEAD:Index.html
     
 
         /* ====== Navbar ====== */
@@ -64,6 +70,8 @@
   color: #1a237e;            /* teks biru tua */
 }
 
+=======
+>>>>>>> 8ea446dd95edc4b4f4930338429cd68761bd5e00:Index.php
 
     /* ====== Section Beranda ====== */
     .hero {
@@ -224,6 +232,7 @@
 </head>
 <body>
 
+<<<<<<< HEAD:Index.html
 <!-- ====== Navbar ====== -->
 <nav class="navbar">
   <div class="logo">dr. Arif Rahman, Sp.PD</div>
@@ -235,6 +244,9 @@
   </ul>
 </nav>
 
+=======
+  
+>>>>>>> 8ea446dd95edc4b4f4930338429cd68761bd5e00:Index.php
 
   <!-- ====== Beranda ====== -->
   <section id="beranda" class="hero">
@@ -291,11 +303,12 @@
 
       <!-- Card 3 -->
       <div class="card">
-
+        <a href="https://www.google.com/maps/dir//Jl.+Petek+Jl.+Kp.+Gayam,+RT.02%2FRW.06,+Dadapsari,+Kec.+Semarang+Utara,+Kota+Semarang,+Jawa+Tengah+50173/@-6.9679227,110.3370586,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2e70f514ab8380d5:0x7fde5e6fc3fbbf9f!2m2!1d110.4194605!2d-6.9679298?entry=ttu&g_ep=EgoyMDI1MDkwNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" style="text-decoration:none; color:inherit;">
         <img src="KLINIKPRATAMA.webp" alt="Klinik Pratama Unimus">
         <div class="card-body">
           <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Klinik Pratama Unimus</h3>
           <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
+          </a>
           <table>
             <tr><th>Hari</th><th>Waktu</th></tr>
             <tr><td>Senin</td><td>13:00 - 15:00</td></tr>
