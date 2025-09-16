@@ -89,40 +89,41 @@
             color: white;
         }
 
-        /* Hero Section */
+            /* Hero Section */
         .hero {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            padding: 8rem 0 4rem;
-            margin-top: 80px;
+            padding: 4rem 0 2rem;   /* dikurangi supaya tidak terlalu tinggi */
+            margin-top: 0;          /* hilangkan margin kosong di atas */
         }
 
         .hero-content {
             display: grid;
             grid-template-columns: 1fr 400px;
-            gap: 4rem;
+            gap: 3rem;              /* lebih rapat sedikit */
             align-items: center;
         }
 
         .hero-text h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;      /* agak kecil biar proporsional */
             color: #1e3a8a;
             margin-bottom: 1rem;
             font-weight: 700;
         }
 
         .hero-subtitle {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: #fbbf24;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
             font-weight: 600;
         }
 
         .hero-text p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #64748b;
-            margin-bottom: 2rem;
-            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
         }
+
 
         .cta-buttons {
             display: flex;
