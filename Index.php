@@ -544,7 +544,7 @@
                 <div class="hero-text">
                     <h1>Dr. Arif Rahman</h1>
                     <p class="hero-subtitle">Spesialis Penyakit Dalam</p>
-                    <p>Berpengalaman lebih dari 15 tahun dalam menangani berbagai penyakit dalam seperti diabetes, hipertensi, penyakit jantung, gangguan pencernaan, dan penyakit autoimun. Berkomitmen memberikan pelayanan kesehatan terbaik dengan pendekatan yang komprehensif dan personal.</p>
+                  <p>Dokter spesialis penyakit dalam lulusan FK UNS tahun 2021 dengan berbagai sertifikasi fellowship internasional. Berpengalaman menangani berbagai penyakit dalam dan saat ini menjabat sebagai Manajer Pelayanan & Penunjang Medis di RS UNIMUS Semarang. Berkomitmen memberikan pelayanan kesehatan terbaik dengan pendekatan yang komprehensif dan personal.</p>
                     <div class="cta-buttons">
                         
                         <a href="#profile" class="cta-button secondary">Lihat Profil</a>
@@ -556,19 +556,31 @@
                         <h4>Informasi Singkat</h4>
                         <div class="info-item">
                             <span>🎓</span>
-                            <span>Sp.PD, FINASIM</span>
+                            <span>Sp.PD, FINASIM, FINEM, AIFO-K, FISQua</span>
                         </div>
                         <div class="info-item">
                             <span>⏰</span>
-                            <span>15+ Tahun Pengalaman</span>
+                            <span>3+ Tahun Pengalaman</span>
                         </div>
                         <div class="info-item">
                             <span>🏥</span>
-                            <span>RS. Prima Medika</span>
+                            <span>RS. UNIMUS</span>
+                        </div>
+                        <div class="info-item">
+                            <span>📧</span>
+                            <span>Arifrahmanphone@gmail.com</span>
                         </div>
                         <div class="info-item">
                             <span>📞</span>
-                            <span>(021) 555-0123</span>
+                            <span>0812-2515-3406</span>
+                        </div>
+                        <div class="info-item">
+                            <span>📍</span>
+                            <span>Perum Taman Setiabudi</span>
+                        </div>
+                        <div class="info-item">
+                            <span>📱</span>
+                            <span>@doktermimin</span>
                         </div>
                     </div>
                 </div>
@@ -728,64 +740,65 @@
         });
     </script>
 
-  <!-- ====== Jadwal Praktek ====== -->
+   <!-- ====== Jadwal Praktek ====== -->
   <section id="jadwal" class="jadwal">
     <div class="judul-jadwal">
         <h2>Jadwal Praktek</h2>
     </div>
     <p>Berikut adalah jadwal praktek dokter yang dapat Anda kunjungi di beberapa lokasi pelayanan kesehatan.</p>
-       <div class="jadwal-cards">
-      
+    
+    <div class="jadwal-cards">
+
       <!-- Card 1 -->
       <div class="card">
-        <a href="https://www.google.com/maps/dir//Jl.+Kedungmundu+No.214,+Kedungmundu,+Kec.+Tembalang,+Kota+Semarang,+Jawa+Tengah+50273/@-7.0221268,110.3763543,12z/data=!3m1!4b1!4m8!4m7!1m0!1m5!1m1!1s0x2e708d90c74616d1:0x4b34a66d9f9be2ae!2m2!1d110.4587562!2d-7.022134?entry=ttu&g_ep=EgoyMDI1MDkwNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" style="text-decoration:none; color:inherit;">
-        <img src="assets/images/RSUNIMUS.webp" alt="RS Unimus">
-        <div class="card-body">
-          <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Rumah Sakit Unimus</h3>
-          <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
-          </a>
-          <table>
-            <tr><th>Hari</th><th>Waktu</th></tr>
-            <tr><td>Senin</td><td>13:00 - 15:00</td></tr>
-            <tr><td>Selasa</td><td>13:00 - 15:00</td></tr>
-            <tr><td>Rabu</td><td>13:00 - 15:00</td></tr>
-          </table>
-        </div>
+        <a href="https://www.google.com/maps/dir//Jl.+Kedungmundu+No.214..." target="_blank" style="text-decoration:none; color:inherit;">
+          <img src="assets/images/RSUNIMUS.webp" alt="RS Unimus">
+          <div class="card-body">
+            <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Rumah Sakit Unimus</h3>
+            <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
+          </div>
+        </a>
+        <table>
+          <tr><th>Hari</th><th>Waktu</th></tr>
+          <tr><td>Senin</td><td>13:00 - 15:00</td></tr>
+          <tr><td>Selasa</td><td>13:00 - 15:00</td></tr>
+          <tr><td>Rabu</td><td>13:00 - 15:00</td></tr>
+        </table>
       </div>
 
       <!-- Card 2 -->
       <div class="card">
-        <a href="https://www.google.com/maps?um=1&ie=UTF-8&fb=1&gl=id&sa=X&geocode=KVG4M7SniHAuMXf-_PQ5m47h&daddr=Jl.+Letjend+Suprapto+No.62,+Paren,+Sidomulyo,+Kec.+Ungaran+Tim.,+Kabupaten+Semarang,+Jawa+Tengah+50514" target="_blank" style="text-decoration:none; color:inherit;">
-        <img src="assets/images/RSKUSUMA.webp" alt="RS Kusuma Ungaran">
-        <div class="card-body">
-          <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Rumah Sakit Kusuma Ungaran</h3>
-          <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
-          </a>
-          <table>
-            <tr><th>Hari</th><th>Waktu</th></tr>
-            <tr><td>Senin - Jumat</td><td>18:00 - 21:00</td></tr>
-          </table>
-        </div>
+        <a href="https://www.google.com/maps?um=1&ie=UTF-8..." target="_blank" style="text-decoration:none; color:inherit;">
+          <img src="assets/images/RSKUSUMA.webp" alt="RS Kusuma Ungaran">
+          <div class="card-body">
+            <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Rumah Sakit Kusuma Ungaran</h3>
+            <p class="alamat">Jl. Letjend Suprapto No.62, Ungaran<br>Telp: 0812345678910</p>
+          </div>
+        </a>
+        <table>
+          <tr><th>Hari</th><th>Waktu</th></tr>
+          <tr><td>Senin - Jumat</td><td>18:00 - 21:00</td></tr>
+        </table>
       </div>
 
       <!-- Card 3 -->
       <div class="card">
-        <a href="https://www.google.com/maps/dir//Jl.+Petek+Jl.+Kp.+Gayam,+RT.02%2FRW.06,+Dadapsari,+Kec.+Semarang+Utara,+Kota+Semarang,+Jawa+Tengah+50173/@-6.9679227,110.3370586,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x2e70f514ab8380d5:0x7fde5e6fc3fbbf9f!2m2!1d110.4194605!2d-6.9679298?entry=ttu&g_ep=EgoyMDI1MDkwNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" style="text-decoration:none; color:inherit;">
-        <img src="assets\images\KLINIKPRATAMA.webp" alt="Klinik Pratama Unimus">
-        <div class="card-body">
-          <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Klinik Pratama Unimus</h3>
-          <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
-          </a>
-          <table>
-            <tr><th>Hari</th><th>Waktu</th></tr>
-            <tr><td>Senin</td><td>13:00 - 15:00</td></tr>
-            <tr><td>Selasa</td><td>13:00 - 15:00</td></tr>
-          </table>
-        </div>
+        <a href="https://www.google.com/maps/dir//Jl.+Petek..." target="_blank" style="text-decoration:none; color:inherit;">
+          <img src="assets/images/KLINIKPRATAMA.webp" alt="Klinik Pratama Unimus">
+          <div class="card-body">
+            <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Klinik Pratama Unimus</h3>
+            <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
+          </div>
+        </a>
+        <table>
+          <tr><th>Hari</th><th>Waktu</th></tr>
+          <tr><td>Sabtu</td><td>09:00 - 12:00</td></tr>
+        </table>
       </div>
 
     </div>
   </section>
+
 
   <!-- ====== Footer ====== -->
   <?php include 'includes/footer.php'; ?>
