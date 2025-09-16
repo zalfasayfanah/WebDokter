@@ -22,23 +22,23 @@
 
     <div class="cards">
       <div class="card">
-        <img src="https://img.icons8.com/color/96/medical-doctor.png" alt="Poli Klinik">
+        <img src="assets/images/poli.png" alt="Poli Klinik">
         <p>Poli Klinik<br>Penyakit Dalam</p>
       </div>
 
       <div class="card">
-        <img src="https://img.icons8.com/color/96/dna-helix.png" alt="Terapi Stemsel">
-        <p>Terapi<br>Stemsel</p>
+        <img src="assets/images/stemcell.png" alt="Terapi Stemcell">
+        <p>Terapi<br>Stem Cell</p>
       </div>
 
       <div class="card">
-        <img src="https://img.icons8.com/color/96/kidney.png" alt="Home Care">
-        <p>Home Care<br>(Via Rumah Sakit UNIMUS)</p>
-      </div>
+  <img src="assets/images/homecare.png" alt="Home Care">
+  <p>Home Care<br>(Via Rumah Sakit UNIMUS)</p>
+</div>
 
       <div class="card">
-        <img src="https://img.icons8.com/color/96/online-support.png" alt="Telekonsultasi">
-        <p>Telekonsultasi<br>(Via Rumah Sakit UNIMUS)</p>
+        <img src="assets/images/konsultasi.png" alt="konsultasi">
+        <p>Konsultasi<br>(Via Rumah Sakit UNIMUS)</p>
       </div>
     </div>
   <!-- ====== Footer ====== -->
