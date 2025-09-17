@@ -440,27 +440,7 @@
             transform: translateY(-2px);
         }
 
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1e3a8a;
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .fab:hover {
-            transform: scale(1.1);
-        }
+        
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -536,7 +516,6 @@
 </head>
 <body>
    
-
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
@@ -704,13 +683,6 @@
         </div>
     </section>
 
-    <!-- Contact Section -->
-
-
-    <!-- Floating WhatsApp Button -->
-    <button class="fab" title="WhatsApp" onclick="openWhatsApp()">
-        💬
-    </button>
 
     <script>
         // Smooth scrolling
@@ -798,9 +770,7 @@
 
     </div>
   </section>
-
-
-  <!-- ====== Footer ====== -->
+  <!-- ====== FOOOTERRR ====== -->
   <?php include 'includes/footer.php'; ?>
 
 </body>

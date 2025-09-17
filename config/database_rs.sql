@@ -1,6 +1,5 @@
 -- Database: medical_website
-CREATE DATABASE medical_website;
-USE medical_website;
+
 
 -- Tabel Admin
 CREATE TABLE admin (

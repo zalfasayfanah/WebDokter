@@ -2,7 +2,7 @@
   include 'config/Koneksi.php';
   include 'includes/header.php';
 ?>
-
+<body>
 <link rel="stylesheet" href="assets/css/Pelayanan.css">
 
     <!-- Hero -->
