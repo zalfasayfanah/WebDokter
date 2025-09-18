@@ -51,18 +51,7 @@
       margin-bottom: 10px;
     }
 
-  /* tambah button — di bawah judul (kamu minta) */
-  .btn-admin {
-    display:inline-block;
-    background:var(--yellow);
-    color:var(--text);
-    padding:10px 18px;
-    border-radius:20px;
-    font-weight:700;
-    cursor:pointer;
-    border:none;
-    margin:14px 0 30px 0;
-  }
+
 
   /* ---------- Cards grid ---------- */
     .jadwal-cards {
@@ -141,6 +130,19 @@
     font-size:13px;
   }
 
+    /* tambah button — di bawah judul (kamu minta) */
+  .btn-admin {
+    display:inline-block;
+    background:var(--yellow);
+    color:var(--text);
+    padding:10px 18px;
+    border-radius:20px;
+    font-weight:700;
+    cursor:pointer;
+    border:none;
+    margin:14px 0 30px 0;
+  }
+
   /* ---------- Modal ---------- */
   .modal{ display:none; position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:20px; }
   .modal.show{ display:flex }
@@ -199,7 +201,7 @@
       <button class="btn-edit" onclick="openModal('edit', this.closest('.card'))">Edit</button>
 
       <a class="card-link" href="https://www.google.com/maps/place/Rumah+Sakit+Unimus" target="_blank">
-        <img src="RSUNIMUS.webp" alt="RS Unimus">
+        <img src="assets/images/RSUNIMUS.webp" alt="RS Unimus">
         <div class="card-body">
           <h3><i class="fa-solid fa-location-dot"></i>Rumah Sakit Unimus</h3>
           <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
@@ -226,7 +228,7 @@
       <button class="btn-edit" onclick="openModal('edit', this.closest('.card'))">Edit</button>
 
       <a class="card-link" href="https://www.google.com/maps" target="_blank">
-        <img src="RSKUSUMA.webp" alt="RS Kusuma">
+        <img src="assets/images/RSKUSUMA.webp" alt="RS Kusuma">
         <div class="card-body">
           <h3><i class="fa-solid fa-location-dot"></i>Rumah Sakit Kusuma Ungaran</h3>
           <p class="alamat">Jl. Letjend Suprapto No.62, Ungaran<br>Telp: 081234567892</p>

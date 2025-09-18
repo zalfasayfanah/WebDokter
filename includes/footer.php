@@ -17,10 +17,7 @@
                     <i class="fab fa-tiktok"></i>
                     <span>@dokter</span>
                 </a>
-                <a href="https://youtube.com/dokter" class="footer-social-link">
-                    <i class="fab fa-youtube"></i>
-                    <span>youtube.com/dokter</span>
-                </a>
+               
             </div>
         </div>
         <div class="footer-section">
@@ -28,7 +25,7 @@
             <div class="footer-contact-info">
                 <div class="footer-contact-item">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>Jl. Kedungmundu No.24, Tembalang, Kota Semarang</span>
+                    <span>Kota Semarang, Jawa Tengah, Indonesia</span>
                 </div>
                 <div class="footer-contact-item">
                     <i class="fas fa-phone"></i>
