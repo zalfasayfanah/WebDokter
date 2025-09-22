@@ -182,7 +182,7 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-    <?php include '../kategoriPenyakit/includes/header.php'; ?>
+    <?php include '../includes/header.php'; ?>
     
     <div class="main-container">
         <div class="sidebar">
@@ -232,6 +232,6 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
         </div>
     </div>
     
-    <?php include 'includes/footer.php'; ?>
+ 
 </body>
 </html>
