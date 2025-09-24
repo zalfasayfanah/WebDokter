@@ -2,7 +2,7 @@
 // Script untuk setup database medical_website
 try {
     // Koneksi tanpa database untuk membuat database
-    $pdo = new PDO("mysql:host=localhost", "root", "root");
+    $pdo = new PDO("mysql:host=localhost;port=3307", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Buat database jika belum ada
