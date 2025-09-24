@@ -4,24 +4,41 @@
             <div class="footer-section">
                 <h3 class="footer-title">Dokter Spesialis Penyakit Dalam</h3>
                 <p class="footer-slogan">Melayani dengan sepenuh hati untuk kesehatan anda</p>
-                <div class="social-links">
-                    <a href="https://facebook.com/dokter" class="social-link">
-                        <i class="fab fa-facebook-f"></i>
-                        <span>facebook.com/dokter</span>
-                    </a>
-                    <a href="https://instagram.com/dokter" class="social-link">
-                        <i class="fab fa-instagram"></i>
-                        <span>@dokter</span>
-                    </a>
-                    <a href="https://tiktok.com/@dokter" class="social-link">
-                        <i class="fab fa-tiktok"></i>
-                        <span>@dokter</span>
-                    </a>
-                    <a href="https://youtube.com/dokter" class="social-link">
-                        <i class="fab fa-youtube"></i>
-                        <span>youtube.com/dokter</span>
-                    </a>
-                </div>
+           <footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h3 class="footer-title">Dokter Spesialis Penyakit Dalam</h3>
+      <p class="footer-slogan">Melayani dengan sepenuh hati untuk kesehatan anda</p>
+
+      <div class="social-links">
+        <ul>
+          <li>
+            <i class="fab fa-instagram"></i>
+            <a href="https://www.instagram.com/doktermimin" target="_blank">@doktermimin</a>
+          </li>
+          <li>
+            <i class="fab fa-facebook"></i>
+            <a href="https://facebook.com/dokterarifrahman" target="_blank">Dokter Arif Rahman</a>
+          </li>
+          <li>
+            <i class="fab fa-tiktok"></i>
+            <a href="https://tiktok.com/@doktermimin" target="_blank">@doktermimin</a>
+          </li>
+          <li>
+            <i class="fas fa-map-marker-alt"></i>
+            dr. Arif Rahman Sp.PD, FINASIM, FINEM, AIFO-K, FISQua <br>
+            (Dokter Spesialis Penyakit Dalam & Dokter Stemcell) Kota Semarang
+          </li>
+          <li>
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:arifrahmanphone@gmail.com">arifrahmanphone@gmail.com</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
             </div>
             <div class="footer-section">
                 <h3 class="footer-title">Kontak Kami</h3>
@@ -36,7 +53,7 @@
                     </div>
                     <div class="contact-item">
                         <i class="fas fa-envelope"></i>
-                        <span>dokter@gmail.com</span>
+                        <span>arifrahmanphone@gmail.com</span>
                     </div>
                 </div>
             </div>

@@ -3,6 +3,7 @@
   include 'includes/header.php';
 ?>
 <body>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="assets/css/Pelayanan.css">
 
     <!-- Hero -->
@@ -23,12 +24,12 @@
     <div class="cards">
       <div class="card">
         <img src="assets/images/poli.png" alt="Poli Klinik">
-        <p>Poli Klinik<br>Penyakit Dalam</p>
+        <p>Poli Klinik Sepesialis<br>Penyakit Dalam</p>
       </div>
 
       <div class="card">
         <img src="assets/images/stemcell.png" alt="Terapi Stemcell">
-        <p>Terapi<br>Stem Cell</p>
+        <p>Terapi Regeneratif<br>(Exosome & Secretome)</p>
       </div>
 
       <div class="card">
@@ -38,7 +39,7 @@
 
       <div class="card">
         <img src="assets/images/konsultasi.png" alt="konsultasi">
-        <p>Konsultasi<br>(Via Rumah Sakit UNIMUS)</p>
+        <p>Telekonsultasi<br>(Via Humas Rumah Sakit UNIMUS)</p>
       </div>
     </div>
   <!-- ====== Footer ====== -->
