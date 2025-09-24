@@ -438,8 +438,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         function generateEditForm(data) {
-            // This would generate the edit form based on current table and data
-            // For brevity, I'll implement a simplified version
             let html = '';
 
             <?php if ($currentTable == 'dokter'): ?>
@@ -475,6 +473,56 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             <textarea class="form-control" name="deskripsi" rows="4">${data.deskripsi || ''}</textarea>
         </div>
     `;
+            <?php elseif ($currentTable == 'jadwal_praktek'): ?>
+                html = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Dokter</label>
+                    <select class="form-select" name="dokter_id" required>
+                        <?php foreach ($doctors as $doctor): ?>
+                            <option value="<?= $doctor['id'] ?>" ${data.dokter_id == <?= $doctor['id'] ?> ? 'selected' : ''}>
+                                <?= htmlspecialchars($doctor['nama']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nama Tempat</label>
+                    <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat || ''}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Hari</label>
+                    <input type="text" class="form-control" name="hari" value="${data.hari || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
+                        <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Jam Mulai</label>
+                    <input type="time" class="form-control" name="jam_mulai" value="${data.jam_mulai || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Jam Selesai</label>
+                    <input type="time" class="form-control" name="jam_selesai" value="${data.jam_selesai || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Telepon</label>
+                    <input type="text" class="form-control" name="telepon" value="${data.telepon || ''}">
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Alamat</label>
+            <textarea class="form-control" name="alamat" rows="3">${data.alamat || ''}</textarea>
+        </div>
+        `;
             <?php endif; ?>
 
             return html;
@@ -547,7 +595,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 break;
             case 'kategori_organ':
                 echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama'] . ' (' . $row['urutan'] . ')') . '</td>';
                 echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
                 echo '<td>' . $row['urutan'] . '</td>';
                 echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
