@@ -7,15 +7,15 @@
             <div class="footer-social-links">
                 <a href="https://facebook.com/dokter" class="footer-social-link">
                     <i class="fab fa-facebook-f"></i>
-                    <span>facebook.com/dokter</span>
+                    <span>Dokter Arif Rahman</span>
                 </a>
                 <a href="https://instagram.com/dokter" class="footer-social-link">
                     <i class="fab fa-instagram"></i>
-                    <span>@dokter</span>
+                    <span>@doktermimin</span>
                 </a>
                 <a href="https://tiktok.com/@dokter" class="footer-social-link">
                     <i class="fab fa-tiktok"></i>
-                    <span>@dokter</span>
+                    <span>@doktermimin</span>
                 </a>
                
             </div>
@@ -25,15 +25,11 @@
             <div class="footer-contact-info">
                 <div class="footer-contact-item">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>Kota Semarang, Jawa Tengah, Indonesia</span>
-                </div>
-                <div class="footer-contact-item">
-                    <i class="fas fa-phone"></i>
-                    <span>0812-3456-7890</span>
+                    <span>dr. Arif Rahman Sp.PD, FINASIM, FINEM, AIFO-K, FISQua (Dokter Spesialis Penyakit Dalam & Dokter Stemcell) Kota Semarang</span>
                 </div>
                 <div class="footer-contact-item">
                     <i class="fas fa-envelope"></i>
-                    <span>dokter@gmail.com</span>
+                    <span>arifrahmanphone@gmail.com</span>
                 </div>
             </div>
         </div>
