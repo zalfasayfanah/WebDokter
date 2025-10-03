@@ -174,19 +174,31 @@ include 'includes/header.php';
             text-align: center;
         }
 
-        .doctor-photo {
-            width: 200px;
-            height: 200px;
+            .doctor-photo {
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            overflow: hidden;
             margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border: 6px solid #fbbf24; /* warna emas */
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
-            color: white;
-            border: 6px solid #fbbf24;
+            position: relative;
+
         }
+
+           .doctor-photo img {
+            width: 100%;       /* zoom foto */
+            height: auto;
+            object-fit: cover;
+            border-radius: 70%;
+            transform: translateY(10px) translateX(-20px); 
+            /* 👉 ubah -10px untuk naik/turun 
+            👉 ubah X untuk geser kiri/kanan */
+        }
+
 
         .quick-info {
             background: #f8fafc;
@@ -231,17 +243,25 @@ include 'includes/header.php';
         }
 
         .profile-photo {
-            width: 150px;
+            width: 150px;                /* ukuran lingkaran */
             height: 150px;
             border-radius: 50%;
-            background: #fbbf24;
-            margin: 0 auto 1.5rem;
+            overflow: hidden;
+            margin: 0 auto 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
-            color: #1e3a8a;
+            background: #fbbf24;         /* kuning biar sama seperti sebelumnya */
         }
+
+        .profile-photo img {
+            width: 110%;                 /* perbesar foto sedikit */
+            height: auto;
+            object-fit: cover;
+            border-radius: 50%;
+            transform: translateY(10px) translateX(-17px); /* naikkan foto supaya wajah lebih center */
+        }
+
 
         .profile-card h3 {
             font-size: 1.5rem;
@@ -646,27 +666,41 @@ include 'includes/header.php';
                 <div class="hero-text">
                     <h1>Dr. Arif Rahman</h1>
                     <p class="hero-subtitle">Spesialis Penyakit Dalam</p>
-                    <p>Dokter spesialis penyakit dalam lulusan FK UNS tahun 2021 dengan berbagai sertifikasi fellowship internasional. Berpengalaman menangani berbagai penyakit dalam dan saat ini menjabat sebagai Manajer Pelayanan & Penunjang Medis di RS UNIMUS Semarang. Berkomitmen memberikan pelayanan kesehatan terbaik dengan pendekatan yang komprehensif dan personal.</p>
+                    <p>Dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua
+                        Spesialis Penyakit Dalam
+                        Berpengalaman lebih dari 10 tahun dalam menangani berbagai penyakit dalam seperti diabetes, hipertensi, penyakit jantung, gangguan pencernaan, hingga penyakit autoimun, Dr. Arif Rahman telah membantu ribuan pasien mendapatkan pelayanan kesehatan terbaik. Beliau juga aktif mengembangkan terapi medis inovatif dan pengobatan regeneratif dengan metode stem cell dan turunannya seperti exosome serta secretome untuk mendukung penyembuhan yang lebih optimal.
+                        Dengan berbagai pelatihan nasional maupun internasional, serta fellowship di bidang nutrisi, olahraga klinis, dan mutu layanan kesehatan, Dr. Arif Rahman berkomitmen memberikan layanan kesehatan yang komprehensif, personal, dan berstandar tinggi bagi masyarakat.
+                        </p>
                     <div class="cta-buttons">
 
                         <a href="#profile" class="cta-button secondary">Lihat Profil</a>
                     </div>
                 </div>
                 <div class="hero-image">
-                    <div class="doctor-photo">👨‍⚕️</div>
+                   <div class="doctor-photo">
+                       <img src="assets/images/dokter-removebg-preview.png" alt="Foto Dokter" />
+                    </div>
                     <div class="quick-info">
                         <h4>Informasi Singkat</h4>
                         <div class="info-item">
-                            <span>🎓</span>
-                            <span>Sp.PD, FINASIM, FINEM, AIFO-K, FISQua</span>
+                            <span>👨‍⚕️</span>
+                            <span>dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua</span>
                         </div>
                         <div class="info-item">
-                            <span>⏰</span>
-                            <span>3+ Tahun Pengalaman</span>
+                            <span>💉</span>
+                            <span>Spesialis Penyakit Dalam & Terapi Regeneratif</span>
                         </div>
                         <div class="info-item">
-                            <span>📞</span>
-                            <span>0812-2515-3406</span>
+                            <span>⏳</span>
+                            <span>10+ Tahun Pengalaman</span>
+                        </div>
+                         <div class="info-item">
+                            <span>🏥 </span>
+                            <span>Praktik di: RS KUSUMA Ungaran & RS UNIMUS Semarang</span>
+                        </div>
+                        <div class="info-item">
+                            <span>📍</span>
+                            <span>Gmaps: dr. Arif Rahman Sp.PD, FINASIM, FINEM, AIFO-K, FISQua (Dokter Spesialis Penyakit Dalam & Dokter Stemcell) Kota Semarang</span>
                         </div>
                     </div>
                 </div>
@@ -675,120 +709,131 @@ include 'includes/header.php';
     </section>
 
     <!-- Doctor Profile Section -->
-    <section id="profile" class="doctor-profile">
-        <div class="container">
-            <div class="profile-content">
-                <div class="profile-card">
-                    <div class="profile-photo">👨‍⚕️</div>
-                    <h3>Dr. Arif Rahman</h3>
-                    <p class="specialty">Sp.PD, FINASIM</p>
+   <section id="profile" class="doctor-profile">
+    <div class="container">
+        <div class="profile-content">
+            
+            <!-- Kartu Profil Dokter -->
+            <div class="profile-card">
+                <div class="profile-photo"><img src="assets/images/dokter-removebg-preview.png" alt="Foto Dokter" /></div>
+                <h3>Dr. Arif Rahman</h3>
+                <p class="specialty">Sp.PD</p>
 
-                    <div class="credentials">
-                        <h4>Sertifikasi:</h4>
-                        <ul>
-                            <li>• Spesialis Penyakit Dalam</li>
-                            <li>• Fellow Penyakit Dalam</li>
-                            <li>• Sertifikat Diabetes</li>
-                            <li>• Sertifikat Kardiologi</li>
-                        </ul>
-                    </div>
-
-                    <div class="credentials">
-                        <h4>Anggota:</h4>
-                        <ul>
-                            <li>• PAPDI (Perhimpunan Ahli Penyakit Dalam Indonesia)</li>
-                            <li>• PERKENI (Perkumpulan Endokrinologi Indonesia)</li>
-                            <li>• IDI (Ikatan Dokter Indonesia)</li>
-                        </ul>
-                    </div>
+                <div class="credentials">
+                    <h4>Pendidikan:</h4>
+                    <ul>
+                        <li>• Pendidikan Kedokteran – Universitas Sebelas Maret (UNS) Surakarta</li>
+                        <li>• Spesialis Penyakit Dalam – Universitas Diponegoro Semarang</li>
+                    </ul>
                 </div>
 
-                <div class="profile-info">
-                    <h2 class="section-title">Tentang Dokter</h2>
-                    <p class="about-text">
-                        Dr. Arif Rahman adalah seorang dokter spesialis penyakit dalam yang berpengalaman lebih dari 15 tahun. Beliau menyelesaikan pendidikan kedokteran di Universitas Indonesia dan melanjutkan spesialisasi penyakit dalam di Fakultas Kedokteran yang sama.
-                    </p>
-                    <p class="about-text">
-                        Dr. Arif memiliki keahlian khusus dalam penanganan penyakit diabetes melitus, hipertensi, penyakit jantung koroner, gangguan pencernaan, penyakit ginjal, dan berbagai penyakit autoimun. Beliau juga aktif dalam penelitian dan telah mempublikasikan berbagai artikel ilmiah di jurnal nasional dan internasional.
-                    </p>
+                <div class="credentials">
+                    <h4>Organisasi:</h4>
+                    <ul>
+                        <li>• Ikatan Dokter Indonesia (IDI)</li>
+                        <li>• Perhimpunan Dokter Spesialis Penyakit Dalam Indonesia (PAPDI)</li>
+                    </ul>
+                </div>
+            </div>
 
-                    <h3 style="color: #1e3a8a; margin: 2rem 0 1rem 0;">Keahlian Khusus</h3>
-                    <div class="specializations">
-                        <div class="specialization-card">
-                            <h4>🩺 Diabetes Melitus</h4>
-                            <p>Pengelolaan diabetes tipe 1 dan 2, pencegahan komplikasi, dan edukasi gaya hidup sehat</p>
-                        </div>
-                        <div class="specialization-card">
-                            <h4>❤️ Penyakit Kardiovaskular</h4>
-                            <p>Hipertensi, penyakit jantung koroner, gagal jantung, dan pencegahan penyakit kardiovaskular</p>
-                        </div>
-                        <div class="specialization-card">
-                            <h4>🔄 Penyakit Autoimun</h4>
-                            <p>Lupus, rheumatoid arthritis, dan berbagai gangguan sistem imun lainnya</p>
-                        </div>
-                        <div class="specialization-card">
-                            <h4>🫁 Penyakit Paru</h4>
-                            <p>Asma, PPOK, pneumonia, dan gangguan sistem pernapasan</p>
-                        </div>
-                        <div class="specialization-card">
-                            <h4>🍽️ Gangguan Pencernaan</h4>
-                            <p>GERD, gastritis, IBS, penyakit hati, dan gangguan saluran cerna</p>
-                        </div>
-                        <div class="specialization-card">
-                            <h4>🧬 Penyakit Metabolik</h4>
-                            <p>Gangguan tiroid, obesitas, sindrom metabolik, dan gangguan hormon</p>
-                        </div>
+            <!-- Informasi Detail -->
+            <div class="profile-info">
+                <h2 class="section-title">Tentang Dokter</h2>
+                <p class="about-text">
+                   dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua adalah dokter spesialis penyakit dalam dengan pengalaman lebih dari 10 tahun dalam menangani penyakit lansia (Geriatri), diabetes, hipertensi, autoimun, gangguan pencernaan, serta pola makan sehat.
+                    Beliau menyelesaikan pendidikan Kedokteran Umum di Universitas Diponegoro (2014) dan melanjutkan Spesialis Penyakit Dalam di Universitas Sebelas Maret (2021).
+                    Selain praktik klinis, dr. Arif aktif mengembangkan terapi regeneratif seperti Stem Cell dan Exosome, mengikuti berbagai pelatihan terapi regeneratif, dan berkomitmen memberikan pelayanan kesehatan yang komprehensif serta berbasis bukti ilmiah terkini.
+                    Saat ini, dr. Arif berpraktik di RS Kusuma Ungaran dan RS UNIMUS Semarang, serta merupakan anggota Perhimpunan Dokter Spesialis Penyakit Dalam Indonesia (PAPDI) dan Perhimpunan Dokter Seminat Rekayasa Jaringan dan Terapi Sel Indonesia (REJASELINDO).
+                </p>
+                <p class="about-text">
+                    Dedikasi beliau adalah memberikan pelayanan kesehatan terbaik, berbasis bukti, dengan pendekatan yang 
+                    humanis dan penuh kepedulian terhadap pasien.
+                </p>
+
+                <h3 style="color: #1e3a8a; margin: 2rem 0 1rem 0;">Spesialis & Keahlian</h3>
+                <div class="specializations">
+                    <div class="specialization-card">
+                        <h4>🩺 Penyakit Dalam Umum</h4>
+                        <p>Diagnosis dan tata laksana berbagai penyakit dalam secara komprehensif.</p>
+                    </div>
+                    <div class="specialization-card">
+                        <h4>❤️ Hipertensi & Penyakit Jantung</h4>
+                        <p>Penanganan hipertensi, penyakit jantung koroner, dan pencegahan komplikasi kardiovaskular.</p>
+                    </div>
+                    <div class="specialization-card">
+                        <h4>🍽️ Gangguan Pencernaan</h4>
+                        <p>GERD, gastritis, penyakit hati, dan berbagai gangguan saluran cerna.</p>
+                    </div>
+                    <div class="specialization-card">
+                        <h4>🧬 Penyakit Metabolik</h4>
+                        <p>Gangguan tiroid, obesitas, diabetes melitus, dan sindrom metabolik.</p>
+                    </div>
+                    <div class="specialization-card">
+                        <h4>🫁 Penyakit Paru</h4>
+                        <p>Asma, PPOK, pneumonia, dan gangguan pernapasan lainnya.</p>
+                    </div>
+                    <div class="specialization-card">
+                        <h4>🔄 Penyakit Autoimun</h4>
+                        <p>Lupus, rheumatoid arthritis, dan berbagai gangguan sistem imun.</p>
                     </div>
                 </div>
             </div>
+
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Experience Timeline -->
-    <section class="experience">
-        <div class="container">
-            <h2 class="section-title" style="text-align: center;">Riwayat Karir</h2>
-            <div class="experience-timeline">
-                <div class="timeline-line"></div>
+   <section class="experience">
+    <div class="container">
+        <h2 class="section-title" style="text-align: center;">Riwayat Pekerjaan</h2>
+        <div class="experience-timeline">
+            <div class="timeline-line"></div>
 
-                <div class="timeline-item">
-                    <div class="timeline-marker">🎓</div>
-                    <div class="timeline-content">
-                        <h4>Dokter Spesialis Penyakit Dalam</h4>
-                        <div class="timeline-date">2005 - 2009</div>
-                        <p>Program Pendidikan Dokter Spesialis Penyakit Dalam, Fakultas Kedokteran Universitas Indonesia</p>
-                    </div>
-                </div>
-
-                <div class="timeline-item">
-                    <div class="timeline-marker">🏥</div>
-                    <div class="timeline-content">
-                        <h4>Dokter Spesialis - RS Cipto Mangunkusumo</h4>
-                        <div class="timeline-date">2009 - 2015</div>
-                        <p>Dokter spesialis penyakit dalam di departemen penyakit dalam, menangani kasus-kasus kompleks dan mengajar mahasiswa kedokteran</p>
-                    </div>
-                </div>
-
-                <div class="timeline-item">
-                    <div class="timeline-marker">🔬</div>
-                    <div class="timeline-content">
-                        <h4>Fellowship Endokrinologi</h4>
-                        <div class="timeline-date">2015 - 2016</div>
-                        <p>Program fellowship khusus endokrinologi dan diabetes, memperdalam keahlian dalam penanganan penyakit hormonal</p>
-                    </div>
-                </div>
-
-                <div class="timeline-item">
-                    <div class="timeline-marker">⭐</div>
-                    <div class="timeline-content">
-                        <h4>Konsultan Senior - RS Prima Medika</h4>
-                        <div class="timeline-date">2016 - Sekarang</div>
-                        <p>Konsultan senior penyakit dalam, memimpin tim medis, dan mengembangkan program pencegahan penyakit tidak menular</p>
-                    </div>
+            <!-- Pendidikan Kedokteran -->
+            <div class="timeline-item">
+                <div class="timeline-marker">🎓</div>
+                <div class="timeline-content">
+                    <h4>Pendidikan Kedokteran</h4>
+                    <div class="timeline-date">1996 - 2002</div>
+                    <p>Program Pendidikan Dokter Umum di Fakultas Kedokteran Universitas Diponegoro, Semarang</p>
                 </div>
             </div>
+
+            <!-- Spesialisasi Penyakit Dalam -->
+            <div class="timeline-item">
+                <div class="timeline-marker">🎓</div>
+                <div class="timeline-content">
+                    <h4>Spesialis Penyakit Dalam</h4>
+                    <div class="timeline-date">2003 - 2008</div>
+                    <p>Pendidikan Spesialis Penyakit Dalam di Fakultas Kedokteran Universitas Diponegoro, Semarang</p>
+                </div>
+            </div>
+
+            <!-- Dokter Spesialis -->
+            <div class="timeline-item">
+                <div class="timeline-marker">🏥</div>
+                <div class="timeline-content">
+                    <h4>Dokter Spesialis Penyakit Dalam</h4>
+                    <div class="timeline-date">2008 - 2015</div>
+                    <p>Praktik sebagai dokter spesialis penyakit dalam di berbagai rumah sakit di Semarang dan sekitarnya</p>
+                </div>
+            </div>
+
+            <!-- Konsultan Senior -->
+            <div class="timeline-item">
+                <div class="timeline-marker">⭐</div>
+                <div class="timeline-content">
+                    <h4>Konsultan Senior</h4>
+                    <div class="timeline-date">2015 - Sekarang</div>
+                    <p>Bekerja sebagai konsultan senior penyakit dalam, menangani pasien, memberikan edukasi, dan aktif dalam organisasi profesi IDI & PAPDI</p>
+                </div>
+            </div>
+
         </div>
-    </section>
+    </div>
+</section>
+
 
 
     <script>
