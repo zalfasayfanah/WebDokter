@@ -7,7 +7,7 @@ class Database
     private $host = 'localhost';
     private $db_name = 'medical_website';
     private $username = 'root';
-    private $password = 'root';
+    private $password = '';
     public $conn;
 
     public function getConnection()
@@ -15,7 +15,7 @@ class Database
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3307 ;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
