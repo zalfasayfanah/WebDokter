@@ -83,9 +83,9 @@ function handleAdd($db, $table, $data)
             $stmt->execute([$data['dokter_id'], $data['nama_sertifikat'], $data['institusi'], $data['tahun'], $data['deskripsi']]);
             break;
 
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("INSERT INTO keahlian_khusus (dokter_id, nama_keahlian, deskripsi, warna) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$data['dokter_id'], $data['nama_keahlian'], $data['deskripsi'], $data['warna']]);
+        case 'organisasi':
+            $stmt = $db->prepare("INSERT INTO organisasi (nama_organisasi) VALUES (?, ?, ?, ?)");
+            $stmt->execute([ $data['nama_organisasi']]);
             break;
 
         case 'kategori_organ':
@@ -125,9 +125,9 @@ function handleEdit($db, $table, $data)
             $stmt->execute([$data['dokter_id'], $data['nama_sertifikat'], $data['institusi'], $data['tahun'], $data['deskripsi'], $id]);
             break;
 
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("UPDATE keahlian_khusus SET dokter_id=?, nama_keahlian=?, deskripsi=?, warna=? WHERE id=?");
-            $stmt->execute([$data['dokter_id'], $data['nama_keahlian'], $data['deskripsi'], $data['warna'], $id]);
+        case 'organisasi':
+            $stmt = $db->prepare("UPDATE organisasi SET nama_organisasi=?");
+            $stmt->execute([$data['nama_organisasi'],  $id]);
             break;
 
         case 'kategori_organ':
@@ -169,8 +169,8 @@ function getData($db, $table)
         case 'sertifikat':
             $stmt = $db->prepare("SELECT s.*, d.nama as dokter_nama FROM sertifikat s LEFT JOIN dokter d ON s.dokter_id = d.id ORDER BY d.nama, s.tahun DESC");
             break;
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("SELECT k.*, d.nama as dokter_nama FROM keahlian_khusus k LEFT JOIN dokter d ON k.dokter_id = d.id ORDER BY d.nama, k.nama_keahlian");
+        case 'organisasi':
+            $stmt = $db->prepare("SELECT k.*, d.nama as dokter_nama FROM organisasi k LEFT JOIN dokter d ON k.dokter_id = d.id ORDER BY d.nama, k.nama_organisasi");
             break;
         case 'kategori_organ':
             $stmt = $db->prepare("SELECT * FROM kategori_organ ORDER BY urutan, nama");
@@ -376,9 +376,9 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <a href="?table=sertifikat" class="nav-link <?= $currentTable == 'sertifikat' ? 'active' : '' ?>">
                         <i class="fas fa-certificate me-2"></i> Sertifikat
                     </a>
-                    <a href="?table=keahlian_khusus"
-                        class="nav-link <?= $currentTable == 'keahlian_khusus' ? 'active' : '' ?>">
-                        <i class="fas fa-star me-2"></i> Keahlian Khusus
+                    <a href="?table=organisasi"
+                        class="nav-link <?= $currentTable == 'organisasi' ? 'active' : '' ?>">
+                        <i class="fas fa-star me-2"></i> Organisasi
                     </a>
                     <a href="?table=kategori_organ"
                         class="nav-link <?= $currentTable == 'kategori_organ' ? 'active' : '' ?>">
@@ -607,8 +607,8 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'sertifikat':
                 echo '<tr><th>ID</th><th>Dokter</th><th>Sertifikat</th><th>Institusi</th><th>Tahun</th><th>Aksi</th></tr>';
                 break;
-            case 'keahlian_khusus':
-                echo '<tr><th>ID</th><th>Dokter</th><th>Keahlian</th><th>Deskripsi</th><th>Aksi</th></tr>';
+            case 'organisasi':
+                echo '<tr><th>ID</th><th>Dokter</th><th>Nama Organisasi</th><th>Jabatan</th><th>Tahun</th><th>Aksi</th></tr>';
                 break;
             case 'kategori_organ':
                 echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
@@ -651,11 +651,10 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '<td>' . htmlspecialchars($row['institusi'] ?? '') . '</td>';
                 echo '<td>' . $row['tahun'] . '</td>';
                 break;
-            case 'keahlian_khusus':
+            case 'organisasi':
                 echo '<td>' . $row['id'] . '</td>';
                 echo '<td>' . htmlspecialchars($row['dokter_nama'] ?? '') . '</td>';
-                echo '<td>' . htmlspecialchars($row['nama_keahlian']) . '</td>';
-                echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
+                echo '<td>' . htmlspecialchars($row['nama_organisasi']) . '</td>';
                 break;
             case 'kategori_organ':
                 echo '<td>' . $row['id'] . '</td>';
@@ -829,7 +828,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>';
                 break;
 
-            case 'keahlian_khusus':
+            case 'organisasi':
                 echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
