@@ -7,7 +7,7 @@ class Database
     private $host = 'localhost';
     private $db_name = 'medical_website';
     private $username = 'root';
-    private $password = 'root';
+    private $password = '';
     public $conn;
 
     public function getConnection()
@@ -15,7 +15,7 @@ class Database
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
@@ -87,15 +87,6 @@ if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
 // sekarang $gambar siap dipakai di query INSERT / UPDATE
 
     switch ($table) {
-        case 'dokter':
-            $stmt = $db->prepare("INSERT INTO dokter (nama, spesialisasi, gelar, deskripsi, telepon, email) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$data['nama'], $data['spesialisasi'], $data['gelar'], $data['deskripsi'], $data['telepon'], $data['email']]);
-            break;
-
-        // case 'jadwal_praktek':
-        //     $stmt = $db->prepare("INSERT INTO jadwal_praktek (dokter_id, nama_tempat, alamat, hari, jam_mulai, jam_selesai, telepon, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        //     $stmt->execute([$data['dokter_id'], $data['nama_tempat'], $data['alamat'], $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $data['telepon'], $data['status']]);
-        //     break;
 
         case 'jadwal_praktek':
             // Validasi input tempat praktek
@@ -139,15 +130,9 @@ if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             ]);
             break;
 
-
-        case 'sertifikat':
-            $stmt = $db->prepare("INSERT INTO sertifikat (dokter_id, nama_sertifikat, institusi, tahun, deskripsi) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$data['dokter_id'], $data['nama_sertifikat'], $data['institusi'], $data['tahun'], $data['deskripsi']]);
-            break;
-
         case 'keahlian_khusus':
-            $stmt = $db->prepare("INSERT INTO keahlian_khusus (dokter_id, nama_keahlian, deskripsi, warna) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$data['dokter_id'], $data['nama_keahlian'], $data['deskripsi'], $data['warna']]);
+            $stmt = $db->prepare("INSERT INTO keahlian_khusus (nama_keahlian, deskripsi, warna) VALUES (?, ?, ?, ?)");
+            $stmt->execute($data['nama_keahlian'], $data['deskripsi'], $data['warna']);
             break;
 
         case 'kategori_organ':
@@ -158,11 +143,6 @@ if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
         case 'penyakit':
             $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status']]);
-            break;
-
-        case 'layanan_medis':
-            $stmt = $db->prepare("INSERT INTO layanan_medis (nama, deskripsi, link_eksternal, urutan, status) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$data['nama'], $data['deskripsi'], $data['link_eksternal'], $data['urutan'], $data['status']]);
             break;
     }
 }
@@ -190,15 +170,6 @@ if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
 // sekarang $gambar siap dipakai di query INSERT / UPDATE
 
     switch ($table) {
-        case 'dokter':
-            $stmt = $db->prepare("UPDATE dokter SET nama=?, spesialisasi=?, gelar=?, deskripsi=?, telepon=?, email=? WHERE id=?");
-            $stmt->execute([$data['nama'], $data['spesialisasi'], $data['gelar'], $data['deskripsi'], $data['telepon'], $data['email'], $id]);
-            break;
-
-        // case 'jadwal_praktek':
-        //     $stmt = $db->prepare("UPDATE jadwal_praktek SET dokter_id=?, nama_tempat=?, alamat=?, hari=?, jam_mulai=?, jam_selesai=?, telepon=?, status=? WHERE id=?");
-        //     $stmt->execute([$data['dokter_id'], $data['nama_tempat'], $data['alamat'], $data['hari'], $data['jam_mulai'], $data['jam_selesai'], $data['telepon'], $data['status'], $id]);
-        //     break;
 
         case 'jadwal_praktek':
             // Update data tempat praktek
@@ -225,15 +196,9 @@ if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             ]);
             break;
 
-
-        case 'sertifikat':
-            $stmt = $db->prepare("UPDATE sertifikat SET dokter_id=?, nama_sertifikat=?, institusi=?, tahun=?, deskripsi=? WHERE id=?");
-            $stmt->execute([$data['dokter_id'], $data['nama_sertifikat'], $data['institusi'], $data['tahun'], $data['deskripsi'], $id]);
-            break;
-
         case 'keahlian_khusus':
-            $stmt = $db->prepare("UPDATE keahlian_khusus SET dokter_id=?, nama_keahlian=?, deskripsi=?, warna=? WHERE id=?");
-            $stmt->execute([$data['dokter_id'], $data['nama_keahlian'], $data['deskripsi'], $data['warna'], $id]);
+            $stmt = $db->prepare("UPDATE keahlian_khusus SET nama_keahlian=?, deskripsi=?, warna=? WHERE id=?");
+            $stmt->execute($data['nama_keahlian'], $data['deskripsi'], $data['warna'], $id);
             break;
 
         case 'kategori_organ':
@@ -246,10 +211,6 @@ if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status'], $id]);
             break;
 
-        case 'layanan_medis':
-            $stmt = $db->prepare("UPDATE layanan_medis SET nama=?, deskripsi=?, link_eksternal=?, urutan=?, status=? WHERE id=?");
-            $stmt->execute([$data['nama'], $data['deskripsi'], $data['link_eksternal'], $data['urutan'], $data['status'], $id]);
-            break;
     }
 }
 
@@ -260,18 +221,12 @@ function handleDelete($db, $table, $id)
 }
 
 // Get current table
-$currentTable = $_GET['table'] ?? 'dokter';
+//$currentTable = $_GET['table'] ?? 'dokter';
 
 // Get data for current table
 function getData($db, $table)
 {
     switch ($table) {
-        case 'dokter':
-            $stmt = $db->prepare("SELECT * FROM dokter ORDER BY nama");
-            break;
-        // case 'jadwal_praktek':
-        //     $stmt = $db->prepare("SELECT jp.*, d.nama as dokter_nama FROM jadwal_praktek jp LEFT JOIN dokter d ON jp.dokter_id = d.id ORDER BY d.nama, jp.hari");
-        //     break;
         case 'jadwal_praktek':
             $stmt = $db->prepare("
         SELECT 
@@ -291,23 +246,13 @@ function getData($db, $table)
             break;
 
 
-        case 'sertifikat':
-            $stmt = $db->prepare("SELECT s.*, d.nama as dokter_nama FROM sertifikat s LEFT JOIN dokter d ON s.dokter_id = d.id ORDER BY d.nama, s.tahun DESC");
-            break;
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("SELECT k.*, d.nama as dokter_nama FROM keahlian_khusus k LEFT JOIN dokter d ON k.dokter_id = d.id ORDER BY d.nama, k.nama_keahlian");
-            break;
         case 'kategori_organ':
             $stmt = $db->prepare("SELECT * FROM kategori_organ ORDER BY urutan, nama");
             break;
         case 'penyakit':
             $stmt = $db->prepare("SELECT p.*, k.nama as kategori_nama FROM penyakit p LEFT JOIN kategori_organ k ON p.kategori_id = k.id ORDER BY k.nama, p.nama");
             break;
-        case 'layanan_medis':
-            $stmt = $db->prepare("SELECT * FROM layanan_medis ORDER BY urutan, nama");
-            break;
-        default:
-            $stmt = $db->prepare("SELECT * FROM dokter ORDER BY nama");
+
     }
 
     $stmt->execute();
@@ -320,11 +265,6 @@ $data = getData($db, $currentTable);
 $tempatsStmt = $db->prepare("SELECT id, nama_tempat, alamat FROM tempat_praktek ORDER BY nama_tempat");
 $tempatsStmt->execute();
 $tempats = $tempatsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Get doctors for dropdown
-$doctorsStmt = $db->prepare("SELECT id, nama FROM dokter ORDER BY nama");
-$doctorsStmt->execute();
-$doctors = $doctorsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get categories for dropdown
 $categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ ORDER BY nama");
@@ -498,16 +438,11 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <nav class="nav flex-column">
-                    <a href="?table=dokter" class="nav-link <?= $currentTable == 'dokter' ? 'active' : '' ?>">
-                        <i class="fas fa-user-md me-2"></i> Dokter
-                    </a>
                     <a href="?table=jadwal_praktek"
                         class="nav-link <?= $currentTable == 'jadwal_praktek' ? 'active' : '' ?>">
                         <i class="fas fa-calendar-alt me-2"></i> Jadwal Praktek
                     </a>
-                    <a href="?table=sertifikat" class="nav-link <?= $currentTable == 'sertifikat' ? 'active' : '' ?>">
-                        <i class="fas fa-certificate me-2"></i> Sertifikat
-                    </a>
+                    
                     <a href="?table=keahlian_khusus"
                         class="nav-link <?= $currentTable == 'keahlian_khusus' ? 'active' : '' ?>">
                         <i class="fas fa-star me-2"></i> Keahlian Khusus
@@ -519,10 +454,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <a href="?table=penyakit" class="nav-link <?= $currentTable == 'penyakit' ? 'active' : '' ?>">
                         <i class="fas fa-virus me-2"></i> Penyakit
                     </a>
-                    <a href="?table=layanan_medis"
-                        class="nav-link <?= $currentTable == 'layanan_medis' ? 'active' : '' ?>">
-                        <i class="fas fa-hospital me-2"></i> Layanan Medis
-                    </a>
+                    
                 </nav>
             </div>
 
@@ -636,45 +568,12 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         function generateEditForm(data) {
             let html = '';
 
-            <?php if ($currentTable == 'dokter'): ?>
+            <?php if ($currentTable == 'jadwal_praktek'): ?>
                 html = `
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label class="form-label">Nama Dokter</label>
-                    <input type="text" class="form-control" name="nama" value="${data.nama}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Spesialisasi</label>
-                    <input type="text" class="form-control" name="spesialisasi" value="${data.spesialisasi}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Gelar</label>
-                    <input type="text" class="form-control" name="gelar" value="${data.gelar}">
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">Telepon</label>
-                    <input type="text" class="form-control" name="telepon" value="${data.telepon}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" name="email" value="${data.email}">
-                </div>
-            </div>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Deskripsi</label>
-            <textarea class="form-control" name="deskripsi" rows="4">${data.deskripsi || ''}</textarea>
-        </div>
-    `;
-            <?php elseif ($currentTable == 'jadwal_praktek'): ?>
-                html = `
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-<<<<<<< HEAD
+
                     <label class="form-label">Nama Tempat</label>
                     <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat}" required>
                 </div>
@@ -685,15 +584,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="mb-3">
                     <label class="form-label">No Telp</label>
                     <input type="text" class="form-control" name="telp" value="${data.telp}" required>
-=======
-                    <label class="form-label">Dokter</label>
-                    <select class="form-select" name="dokter_id" required>
-                        <?php foreach ($doctors as $doctor): ?>
-                            <option value="<?= $doctor['id'] ?>" ${data.dokter_id == <?= $doctor['id'] ?> ? 'selected' : ''}>
-                                <?= htmlspecialchars($doctor['nama']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Nama Tempat</label>
@@ -709,12 +599,11 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                         <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
                         <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
                     </select>
->>>>>>> 4dc8de854882ff268e021c27e840f4c33b8772dd
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-<<<<<<< HEAD
+
                     <label class="form-label">Hari</label>
                     <input type="text" class="form-control" name="hari" value="${data.hari}" required>
                 </div>
@@ -734,11 +623,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     }
                     <input type="file" class="form-control" name="gambar">
                     <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
-                </div>
-            </div>
-        </div>
-    `;
-=======
+
                     <label class="form-label">Jam Mulai</label>
                     <input type="time" class="form-control" name="jam_mulai" value="${data.jam_mulai || ''}">
                 </div>
@@ -757,7 +642,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             <textarea class="form-control" name="alamat" rows="3">${data.alamat || ''}</textarea>
         </div>
         `;
->>>>>>> 4dc8de854882ff268e021c27e840f4c33b8772dd
             <?php endif; ?>
 
             return html;
@@ -769,12 +653,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     function renderTableHeader($table)
     {
         switch ($table) {
-            case 'dokter':
-                echo '<tr><th>ID</th><th>Nama</th><th>Spesialisasi</th><th>Telepon</th><th>Email</th><th>Aksi</th></tr>';
-                break;
-            // case 'jadwal_praktek':
-            //     echo '<tr><th>ID</th><th>Dokter</th><th>Tempat</th><th>Alamat</th><th>Hari</th><th>Jam</th><th>Status</th><th>Aksi</th></tr>';
-            //     break;
 
             case 'jadwal_praktek':
                 echo '
@@ -790,11 +668,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         </tr>
     ';
                 break;
-
-
-            case 'sertifikat':
-                echo '<tr><th>ID</th><th>Dokter</th><th>Sertifikat</th><th>Institusi</th><th>Tahun</th><th>Aksi</th></tr>';
-                break;
             case 'keahlian_khusus':
                 echo '<tr><th>ID</th><th>Dokter</th><th>Keahlian</th><th>Deskripsi</th><th>Aksi</th></tr>';
                 break;
@@ -804,9 +677,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'penyakit':
                 echo '<tr><th>ID</th><th>Kategori</th><th>Nama</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr>';
                 break;
-            case 'layanan_medis':
-                echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
-                break;
+
         }
     }
 
@@ -816,22 +687,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         echo '<tr>';
 
         switch ($table) {
-            case 'dokter':
-                echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['spesialisasi']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['telepon'] ?? '') . '</td>';
-                echo '<td>' . htmlspecialchars($row['email'] ?? '') . '</td>';
-                break;
-            // case 'jadwal_praktek':
-            //     echo '<td>' . $row['id'] . '</td>';
-            //     echo '<td>' . htmlspecialchars($row['dokter_nama'] ?? '') . '</td>';
-            //     echo '<td>' . htmlspecialchars($row['nama_tempat']) . '</td>';
-            //     echo '<td>' . htmlspecialchars(substr($row['alamat'] ?? '', 0, 50)) . '...</td>';
-            //     echo '<td>' . htmlspecialchars($row['hari']) . '</td>';
-            //     echo '<td>' . $row['jam_mulai'] . ' - ' . $row['jam_selesai'] . '</td>';
-            //     echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
-            //     break;
 
             case 'jadwal_praktek':
                 echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
@@ -849,14 +704,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '</td>';
                 break;
 
-
-            case 'sertifikat':
-                echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['dokter_nama'] ?? '') . '</td>';
-                echo '<td>' . htmlspecialchars($row['nama_sertifikat']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['institusi'] ?? '') . '</td>';
-                echo '<td>' . $row['tahun'] . '</td>';
-                break;
             case 'keahlian_khusus':
                 echo '<td>' . $row['id'] . '</td>';
                 echo '<td>' . htmlspecialchars($row['dokter_nama'] ?? '') . '</td>';
@@ -877,13 +724,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
                 echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
                 break;
-            case 'layanan_medis':
-                echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-                echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
-                echo '<td>' . $row['urutan'] . '</td>';
-                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
-                break;
+
         }
 
         echo '<td>';
@@ -895,93 +736,11 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Function to render forms
-    function renderForm($table, $data = null, $doctors = [], $categories = [], $tempats = [])
+    function renderForm($table, $data = null, $categories = [], $tempats = [])
     {
         $isEdit = $data !== null;
 
         switch ($table) {
-            case 'dokter':
-                echo '<div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Dokter</label>
-                        <input type="text" class="form-control" name="nama" value="' . ($isEdit ? htmlspecialchars($data['nama']) : '') . '" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Spesialisasi</label>
-                        <input type="text" class="form-control" name="spesialisasi" value="' . ($isEdit ? htmlspecialchars($data['spesialisasi']) : '') . '" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gelar</label>
-                        <input type="text" class="form-control" name="gelar" value="' . ($isEdit ? htmlspecialchars($data['gelar']) : '') . '">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Telepon</label>
-                        <input type="text" class="form-control" name="telepon" value="' . ($isEdit ? htmlspecialchars($data['telepon']) : '') . '">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" value="' . ($isEdit ? htmlspecialchars($data['email']) : '') . '">
-                    </div>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="4">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
-            </div>';
-                break;
-
-            // case 'jadwal_praktek':
-            //     echo '<div class="row">
-            //     <div class="col-md-6">
-            //         <div class="mb-3">
-            //             <label class="form-label">Dokter</label>
-            //             <select class="form-select" name="dokter_id" required>';
-            //     echo '<option value="">Pilih Dokter</option>';
-            //     foreach ($doctors as $doctor) {
-            //         $selected = ($isEdit && $data['dokter_id'] == $doctor['id']) ? 'selected' : '';
-            //         echo '<option value="' . $doctor['id'] . '" ' . $selected . '>' . htmlspecialchars($doctor['nama']) . '</option>';
-            //     }
-            //     echo '</select>
-            //         </div>
-            //         <div class="mb-3">
-            //             <label class="form-label">Nama Tempat</label>
-            //             <input type="text" class="form-control" name="nama_tempat" value="' . ($isEdit ? htmlspecialchars($data['nama_tempat']) : '') . '" required>
-            //         </div>
-            //         <div class="mb-3">
-            //             <label class="form-label">Hari</label>
-            //             <input type="text" class="form-control" name="hari" value="' . ($isEdit ? htmlspecialchars($data['hari']) : '') . '" placeholder="Contoh: Senin, Rabu, Jumat">
-            //         </div>
-            //         <div class="mb-3">
-            //             <label class="form-label">Status</label>
-            //             <select class="form-select" name="status">
-            //                 <option value="aktif" ' . ($isEdit && $data['status'] == 'aktif' ? 'selected' : '') . '>Aktif</option>
-            //                 <option value="nonaktif" ' . ($isEdit && $data['status'] == 'nonaktif' ? 'selected' : '') . '>Non Aktif</option>
-            //             </select>
-            //         </div>
-            //     </div>
-            //     <div class="col-md-6">
-            //         <div class="mb-3">
-            //             <label class="form-label">Jam Mulai</label>
-            //             <input type="time" class="form-control" name="jam_mulai" value="' . ($isEdit ? $data['jam_mulai'] : '') . '">
-            //         </div>
-            //         <div class="mb-3">
-            //             <label class="form-label">Jam Selesai</label>
-            //             <input type="time" class="form-control" name="jam_selesai" value="' . ($isEdit ? $data['jam_selesai'] : '') . '">
-            //         </div>
-            //         <div class="mb-3">
-            //             <label class="form-label">Telepon</label>
-            //             <input type="text" class="form-control" name="telepon" value="' . ($isEdit ? htmlspecialchars($data['telepon']) : '') . '">
-            //         </div>
-            //     </div>
-            // </div>
-            // <div class="mb-3">
-            //     <label class="form-label">Alamat</label>
-            //     <textarea class="form-control" name="alamat" rows="3">' . ($isEdit ? htmlspecialchars($data['alamat']) : '') . '</textarea>
-            // </div>';
-            //     break;
 
             case 'jadwal_praktek':
                 echo '<div class="row">
@@ -1031,43 +790,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>';
-                break;
-
-
-
-            case 'sertifikat':
-                echo '<div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Dokter</label>
-                        <select class="form-select" name="dokter_id" required>';
-                echo '<option value="">Pilih Dokter</option>';
-                foreach ($doctors as $doctor) {
-                    $selected = ($isEdit && $data['dokter_id'] == $doctor['id']) ? 'selected' : '';
-                    echo '<option value="' . $doctor['id'] . '" ' . $selected . '>' . htmlspecialchars($doctor['nama']) . '</option>';
-                }
-                echo '</select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nama Sertifikat</label>
-                        <input type="text" class="form-control" name="nama_sertifikat" value="' . ($isEdit ? htmlspecialchars($data['nama_sertifikat']) : '') . '" required>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Institusi</label>
-                        <input type="text" class="form-control" name="institusi" value="' . ($isEdit ? htmlspecialchars($data['institusi']) : '') . '">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tahun</label>
-                        <input type="number" class="form-control" name="tahun" value="' . ($isEdit ? $data['tahun'] : '') . '" min="1900" max="2030">
-                    </div>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
-            </div>';
                 break;
 
             case 'keahlian_khusus':
@@ -1193,37 +915,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>';
                 break;
 
-            case 'layanan_medis':
-                echo '<div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Layanan</label>
-                        <input type="text" class="form-control" name="nama" value="' . ($isEdit ? htmlspecialchars($data['nama']) : '') . '" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Link Eksternal</label>
-                        <input type="url" class="form-control" name="link_eksternal" value="' . ($isEdit ? htmlspecialchars($data['link_eksternal']) : '') . '" placeholder="https://example.com">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Urutan</label>
-                        <input type="number" class="form-control" name="urutan" value="' . ($isEdit ? $data['urutan'] : '0') . '" min="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="aktif" ' . ($isEdit && $data['status'] == 'aktif' ? 'selected' : '') . '>Aktif</option>
-                            <option value="nonaktif" ' . ($isEdit && $data['status'] == 'nonaktif' ? 'selected' : '') . '>Non Aktif</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="4">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
-            </div>';
-                break;
         }
     }
     ?>
