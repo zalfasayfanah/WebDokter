@@ -69,7 +69,7 @@
         <ul>
             <li><a href="../Index.php">Beranda</a></li>
             <li><a href="../Index.php#jadwal">Jadwal Praktek</a></li>
-            <li><a href="penyakit.php">Penyakit Dalam</a></li>
+            <li><a href="../Penyakit/penyakit_home.php">Penyakit Dalam</a></li>
             <li><a href="../Pelayanan.php">Pelayanan</a></li>
         </ul>
     </nav>
