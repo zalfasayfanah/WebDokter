@@ -67,6 +67,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 function handleAdd($db, $table, $data)
 {
+    // --- Handle Upload Gambar ---
+$gambar = $_POST['gambar_lama'] ?? ''; // default gambar lama kalau tidak diubah
+
+if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
+    $targetDir = __DIR__ . "/assets/images/"; // path folder simpan
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+
+    $fileName = time() . "_" . basename($_FILES['gambar']['name']); // biar unik
+    $targetFilePath = $targetDir . $fileName;
+
+    if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $targetFilePath)) {
+        $gambar = $fileName; // update nama file baru
+    }
+}
+
+// sekarang $gambar siap dipakai di query INSERT / UPDATE
+
     switch ($table) {
         case 'dokter':
             $stmt = $db->prepare("INSERT INTO dokter (nama, spesialisasi, gelar, deskripsi, telepon, email) VALUES (?, ?, ?, ?, ?, ?)");
@@ -79,42 +98,47 @@ function handleAdd($db, $table, $data)
         //     break;
 
         case 'jadwal_praktek':
-    // Validasi input
-    if (empty($data['nama_tempat']) || empty($data['alamat']) || empty($data['telp']) 
-        || empty($data['gmaps_link']) || empty($data['gambar'])) {
-        die("Harap lengkapi semua data tempat praktek sebelum menyimpan.");
-    }
+            // Validasi input tempat praktek
+            if (
+                empty($data['nama_tempat']) || empty($data['alamat']) || empty($data['telp'])
+                || empty($data['gmaps_link']) || empty($data['gambar'])
+            ) {
+                die("Harap lengkapi semua data tempat praktek sebelum menyimpan.");
+            }
 
-    // Insert data tempat praktek
-    $stmt = $db->prepare("
+            // Insert data tempat praktek
+            $stmt = $db->prepare("
         INSERT INTO tempat_praktek (nama_tempat, alamat, telp, gmaps_link, gambar) 
         VALUES (?, ?, ?, ?, ?)
     ");
-    $stmt->execute([
-        $data['nama_tempat'],
-        $data['alamat'],
-        $data['telp'],
-        $data['gmaps_link'],
-        $data['gambar']
-    ]);
+            $stmt->execute([
+                $data['nama_tempat'],
+                $data['alamat'],
+                $data['telp'],
+                $data['gmaps_link'],
+                $data['gambar']
+            ]);
 
-    // Ambil id tempat praktek yg baru ditambahkan
-    $tempatId = $db->lastInsertId();
-
-
-            // Ambil ID tempat praktek yang baru dimasukkan
+            // Ambil ID tempat praktek yg baru ditambahkan
             $id_tempat = $db->lastInsertId();
 
-            // 2. Insert data waktu praktek
-            $stmt = $db->prepare("INSERT INTO waktu_praktek (tempat_id, hari, waktu) 
-                          VALUES (?, ?, ?, ?)");
+            // Validasi input waktu praktek
+            if (empty($data['hari']) || empty($data['waktu'])) {
+                die("Harap lengkapi semua data waktu praktek sebelum menyimpan.");
+            }
+
+            // Insert data waktu praktek
+            $stmt = $db->prepare("
+        INSERT INTO waktu_praktek (tempat_id, hari, waktu) 
+        VALUES (?, ?, ?)
+    ");
             $stmt->execute([
                 $id_tempat,
                 $data['hari'],
-                $data['jam_mulai'],
-                $data['jam_selesai']
+                $data['waktu']
             ]);
             break;
+
 
         case 'sertifikat':
             $stmt = $db->prepare("INSERT INTO sertifikat (dokter_id, nama_sertifikat, institusi, tahun, deskripsi) VALUES (?, ?, ?, ?, ?)");
@@ -146,6 +170,24 @@ function handleAdd($db, $table, $data)
 function handleEdit($db, $table, $data)
 {
     $id = $data['id'];
+    // --- Handle Upload Gambar ---
+$gambar = $_POST['gambar_lama'] ?? ''; // default gambar lama kalau tidak diubah
+
+if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
+    $targetDir = __DIR__ . "/assets/images/"; // path folder simpan
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+
+    $fileName = time() . "_" . basename($_FILES['gambar']['name']); // biar unik
+    $targetFilePath = $targetDir . $fileName;
+
+    if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $targetFilePath)) {
+        $gambar = $fileName; // update nama file baru
+    }
+}
+
+// sekarang $gambar siap dipakai di query INSERT / UPDATE
 
     switch ($table) {
         case 'dokter':
@@ -161,28 +203,28 @@ function handleEdit($db, $table, $data)
         case 'jadwal_praktek':
             // Update data tempat praktek
             $stmt = $db->prepare("UPDATE tempat_praktek 
-                          SET nama_tempat=?, alamat=?, telepon=?, gmaps_link=?, gambar=? 
-                          WHERE id_tempat=?");
+                  SET nama_tempat=?, alamat=?, telp=?, gmaps_link=?, gambar=? 
+                  WHERE id=?");
             $stmt->execute([
                 $data['nama_tempat'],
                 $data['alamat'],
-                $data['telepon'],
+                $data['telp'],
                 $data['gmaps_link'] ?? null,
                 $data['gambar'] ?? null,
-                $data['tempat_id']   // pastikan $data bawa id_tempat
+                $data['tempat_id']   // ini harus id dari tempat_praktek
             ]);
 
             // Update data waktu praktek
             $stmt = $db->prepare("UPDATE waktu_praktek 
-                          SET hari=?, jam_mulai=?, jam_selesai=? 
-                          WHERE id_waktu=?");
+                  SET hari=?, waktu=? 
+                  WHERE id=?");
             $stmt->execute([
                 $data['hari'],
-                $data['jam_mulai'],
-                $data['jam_selesai'],
-                $id   // di sini $id harusnya id_waktu
+                $data['waktu'],
+                $id   // ini adalah id dari waktu_praktek
             ]);
             break;
+
 
         case 'sertifikat':
             $stmt = $db->prepare("UPDATE sertifikat SET dokter_id=?, nama_sertifikat=?, institusi=?, tahun=?, deskripsi=? WHERE id=?");
@@ -233,14 +275,15 @@ function getData($db, $table)
         case 'jadwal_praktek':
             $stmt = $db->prepare("
         SELECT 
-            wp.id,
+            wp.id AS id,
+            wp.hari,
+            wp.waktu,
+            tp.id AS tempat_id,
             tp.nama_tempat,
             tp.alamat,
             tp.telp,
             tp.gmaps_link,
-            tp.gambar,
-            wp.hari,
-            wp.waktu
+            tp.gambar
         FROM waktu_praktek wp
         LEFT JOIN tempat_praktek tp ON wp.tempat_id = tp.id
         ORDER BY tp.nama_tempat, wp.hari
@@ -532,7 +575,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="modal-body">
                         <input type="hidden" name="action" value="add">
                         <input type="hidden" name="table" value="<?= $currentTable ?>">
-                        <?php renderForm($currentTable, null, $doctors, $categories); ?>
+                        <?php renderForm($currentTable, null, $doctors, $categories, $tempats); ?>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -628,6 +671,48 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             <textarea class="form-control" name="deskripsi" rows="4">${data.deskripsi || ''}</textarea>
         </div>
     `;
+            <?php elseif ($currentTable == 'jadwal_praktek'): ?>
+                html = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Nama Tempat</label>
+                    <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Alamat</label>
+                    <input type="text" class="form-control" name="alamat" value="${data.alamat}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">No Telp</label>
+                    <input type="text" class="form-control" name="telp" value="${data.telp}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Hari</label>
+                    <input type="text" class="form-control" name="hari" value="${data.hari}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Jam</label>
+                    <input type="text" class="form-control" name="waktu" value="${data.waktu}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Link Gmaps</label>
+                    <input type="text" class="form-control" name="gmaps_link" value="${data.gmaps_link || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Gambar</label><br>
+                    ${data.gambar 
+                        ? `<img src="assets/images/${data.gambar}" alt="Preview" style="max-width: 120px; display:block; margin-bottom:10px;">` 
+                        : ''
+                    }
+                    <input type="file" class="form-control" name="gambar">
+                    <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
+                </div>
+            </div>
+        </div>
+    `;
             <?php endif; ?>
 
             return html;
@@ -706,9 +791,19 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'jadwal_praktek':
                 echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
                 echo '<td>' . htmlspecialchars(substr($row['alamat'] ?? '', 0, 50)) . '...</td>';
+                echo '<td>' . htmlspecialchars($row['telp'] ?? '') . '</td>';
                 echo '<td>' . htmlspecialchars($row['hari'] ?? '') . '</td>';
-                echo '<td>' . ($row['jam_mulai'] ?? '') . ' - ' . ($row['jam_selesai'] ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($row['waktu'] ?? '') . '</td>';
+                echo '<td><a href="' . htmlspecialchars($row['gmaps_link'] ?? '#') . '" target="_blank">Lihat Peta</a></td>';
+                echo '<td>';
+                if (!empty($row['gambar'])) {
+                    echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '" alt="Gambar" width="80">';
+                } else {
+                    echo 'Tidak ada gambar';
+                }
+                echo '</td>';
                 break;
+
 
             case 'sertifikat':
                 echo '<td>' . $row['id'] . '</td>';
@@ -755,7 +850,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Function to render forms
-    function renderForm($table, $data = null, $doctors = [], $categories = [])
+    function renderForm($table, $data = null, $doctors = [], $categories = [], $tempats = [])
     {
         $isEdit = $data !== null;
 
@@ -847,42 +942,52 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '<div class="row">
     <div class="col-md-6">
         <div class="mb-3">
-            <label class="form-label">Dokter</label>
-            <select class="form-select" name="dokter_id" required>';
-                echo '<option value="">Pilih Dokter</option>';
-                foreach ($doctors as $doctor) {
-                    $selected = ($isEdit && $data['dokter_id'] == $doctor['id']) ? 'selected' : '';
-                    echo '<option value="' . $doctor['id'] . '" ' . $selected . '>' . htmlspecialchars($doctor['nama']) . '</option>';
-                }
-                echo '</select>
+            <label class="form-label">Nama Tempat</label>
+            <input type="text" class="form-control" name="nama_tempat" 
+                value="' . ($isEdit ? htmlspecialchars($data['nama_tempat']) : '') . '" 
+                placeholder="Masukkan nama tempat" required>
         </div>
         <div class="mb-3">
-            <label class="form-label">Tempat Praktek</label>
-            <select class="form-select" name="tempat_id" required>';
-                echo '<option value="">Pilih Tempat</option>';
-                foreach ($tempats as $tempat) {
-                    $selected = ($isEdit && $data['tempat_id'] == $tempat['id']) ? 'selected' : '';
-                    echo '<option value="' . $tempat['id'] . '" ' . $selected . '>' . htmlspecialchars($tempat['nama_tempat']) . ' - ' . htmlspecialchars($tempat['alamat']) . '</option>';
-                }
-                echo '</select>
+            <label class="form-label">Alamat</label>
+            <input type="text" class="form-control" name="alamat" 
+                value="' . ($isEdit ? htmlspecialchars($data['alamat']) : '') . '" 
+                placeholder="Masukkan alamat" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">No Telp</label>
+            <input type="text" class="form-control" name="telp" 
+                value="' . ($isEdit ? htmlspecialchars($data['telp']) : '') . '" 
+                placeholder="Masukkan nomor telepon" required>
         </div>
         <div class="mb-3">
             <label class="form-label">Hari</label>
-            <input type="text" class="form-control" name="hari" value="' . ($isEdit ? htmlspecialchars($data['hari']) : '') . '" placeholder="Contoh: Senin, Rabu, Jumat">
+            <input type="text" class="form-control" name="hari" 
+                value="' . ($isEdit ? htmlspecialchars($data['hari']) : '') . '" 
+                placeholder="Contoh: Senin, Rabu, Jumat" required>
         </div>
     </div>
+
     <div class="col-md-6">
         <div class="mb-3">
-            <label class="form-label">Jam Mulai</label>
-            <input type="time" class="form-control" name="jam_mulai" value="' . ($isEdit ? $data['jam_mulai'] : '') . '">
+            <label class="form-label">Jam</label>
+            <input type="text" class="form-control" name="waktu" 
+                value="' . ($isEdit ? htmlspecialchars($data['waktu']) : '') . '" 
+                placeholder="Contoh: 08:00 - 12:00" required>
         </div>
         <div class="mb-3">
-            <label class="form-label">Jam Selesai</label>
-            <input type="time" class="form-control" name="jam_selesai" value="' . ($isEdit ? $data['jam_selesai'] : '') . '">
+            <label class="form-label">Link G.maps</label>
+            <input type="url" class="form-control" name="gmaps_link" 
+                value="' . ($isEdit ? htmlspecialchars($data['gmaps_link']) : '') . '" 
+                placeholder="Tempel link Google Maps" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Gambar</label>
+            <input type="file" class="form-control" name="gambar" ' . ($isEdit ? '' : 'required') . '>
         </div>
     </div>
 </div>';
                 break;
+
 
 
             case 'sertifikat':
