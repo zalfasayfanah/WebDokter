@@ -646,8 +646,8 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         $isEdit = $data !== null;
 
         switch ($table) {
-            case 'dokter':
-                echo '<div class="row">
+          case 'dokter':
+            echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Nama Dokter</label>
@@ -671,13 +671,30 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" name="email" value="' . ($isEdit ? htmlspecialchars($data['email']) : '') . '">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Foto Dokter</label>
+                        <input type="text" class="form-control" name="foto" placeholder="path/to/foto.png" value="' . ($isEdit ? htmlspecialchars($data['foto']) : '') . '">
+                    </div>
                 </div>
             </div>
+
             <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
+                <label class="form-label">Deskripsi (Hero)</label>
                 <textarea class="form-control" name="deskripsi" rows="4">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Informasi Singkat</label>
+                <textarea class="form-control" name="informasi_singkat" rows="3">' . ($isEdit ? htmlspecialchars($data['informasi_singkat']) : '') . '</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Tentang Dokter</label>
+                <textarea class="form-control" name="tentang_dokter" rows="5">' . ($isEdit ? htmlspecialchars($data['tentang_dokter']) : '') . '</textarea>
             </div>';
-                break;
+            break;
+
+
 
             case 'jadwal_praktek':
                 echo '<div class="row">
