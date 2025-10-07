@@ -221,7 +221,7 @@ function handleDelete($db, $table, $id)
 }
 
 // Get current table
-//$currentTable = $_GET['table'] ?? 'dokter';
+$currentTable = $_GET['table'] ?? 'penyakit';
 
 // Get data for current table
 function getData($db, $table)
@@ -244,7 +244,9 @@ function getData($db, $table)
         ORDER BY tp.nama_tempat, wp.hari
     ");
             break;
-
+        case 'keahlian_khusus':
+            $stmt = $db->prepare("SELECT * FROM keahlian_khusus ORDER BY nama_keahlian");
+            break;
 
         case 'kategori_organ':
             $stmt = $db->prepare("SELECT * FROM kategori_organ ORDER BY urutan, nama");
@@ -507,7 +509,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="modal-body">
                         <input type="hidden" name="action" value="add">
                         <input type="hidden" name="table" value="<?= $currentTable ?>">
-                        <?php renderForm($currentTable, null, $doctors, $categories, $tempats); ?>
+                        <?php renderForm($currentTable, null, $categories, $tempats); ?>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -669,7 +671,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     ';
                 break;
             case 'keahlian_khusus':
-                echo '<tr><th>ID</th><th>Dokter</th><th>Keahlian</th><th>Deskripsi</th><th>Aksi</th></tr>';
+                echo '<tr><th>ID</th><th>Keahlian</th><th>Deskripsi</th><th>Aksi</th></tr>';
                 break;
             case 'kategori_organ':
                 echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
@@ -706,9 +708,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 
             case 'keahlian_khusus':
                 echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['dokter_nama'] ?? '') . '</td>';
-                echo '<td>' . htmlspecialchars($row['nama_keahlian']) . '</td>';
-                echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
+                echo '<td>' . htmlspecialchars($row['nama_organisasi']) . '</td>';
                 break;
             case 'kategori_organ':
                 echo '<td>' . $row['id'] . '</td>';
@@ -795,16 +795,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'keahlian_khusus':
                 echo '<div class="row">
                 <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Dokter</label>
-                        <select class="form-select" name="dokter_id" required>';
-                echo '<option value="">Pilih Dokter</option>';
-                foreach ($doctors as $doctor) {
-                    $selected = ($isEdit && $data['dokter_id'] == $doctor['id']) ? 'selected' : '';
-                    echo '<option value="' . $doctor['id'] . '" ' . $selected . '>' . htmlspecialchars($doctor['nama']) . '</option>';
-                }
-                echo '</select>
-                    </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Keahlian</label>
                         <input type="text" class="form-control" name="nama_keahlian" value="' . ($isEdit ? htmlspecialchars($data['nama_keahlian']) : '') . '" required>
