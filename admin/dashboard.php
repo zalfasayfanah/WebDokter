@@ -15,7 +15,7 @@ class Database
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";port=3307 ;dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
@@ -674,7 +674,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-<<<<<<< HEAD
                     <label class="form-label">Nama Tempat</label>
                     <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat}" required>
                 </div>
@@ -685,36 +684,10 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="mb-3">
                     <label class="form-label">No Telp</label>
                     <input type="text" class="form-control" name="telp" value="${data.telp}" required>
-=======
-                    <label class="form-label">Dokter</label>
-                    <select class="form-select" name="dokter_id" required>
-                        <?php foreach ($doctors as $doctor): ?>
-                            <option value="<?= $doctor['id'] ?>" ${data.dokter_id == <?= $doctor['id'] ?> ? 'selected' : ''}>
-                                <?= htmlspecialchars($doctor['nama']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Nama Tempat</label>
-                    <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat || ''}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Hari</label>
-                    <input type="text" class="form-control" name="hari" value="${data.hari || ''}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
-                        <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
-                        <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
-                    </select>
->>>>>>> 4dc8de854882ff268e021c27e840f4c33b8772dd
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-<<<<<<< HEAD
                     <label class="form-label">Hari</label>
                     <input type="text" class="form-control" name="hari" value="${data.hari}" required>
                 </div>
@@ -738,26 +711,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     `;
-=======
-                    <label class="form-label">Jam Mulai</label>
-                    <input type="time" class="form-control" name="jam_mulai" value="${data.jam_mulai || ''}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Jam Selesai</label>
-                    <input type="time" class="form-control" name="jam_selesai" value="${data.jam_selesai || ''}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Telepon</label>
-                    <input type="text" class="form-control" name="telepon" value="${data.telepon || ''}">
-                </div>
-            </div>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Alamat</label>
-            <textarea class="form-control" name="alamat" rows="3">${data.alamat || ''}</textarea>
-        </div>
-        `;
->>>>>>> 4dc8de854882ff268e021c27e840f4c33b8772dd
             <?php endif; ?>
 
             return html;
@@ -859,7 +812,6 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 break;
             case 'organisasi':
                 echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['dokter_nama'] ?? '') . '</td>';
                 echo '<td>' . htmlspecialchars($row['nama_organisasi']) . '</td>';
                 break;
             case 'kategori_organ':
@@ -1087,35 +1039,26 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 break;
 
             case 'organisasi':
-                echo '<div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Dokter</label>
-                        <select class="form-select" name="dokter_id" required>';
-                echo '<option value="">Pilih Dokter</option>';
-                foreach ($doctors as $doctor) {
-                    $selected = ($isEdit && $data['dokter_id'] == $doctor['id']) ? 'selected' : '';
-                    echo '<option value="' . $doctor['id'] . '" ' . $selected . '>' . htmlspecialchars($doctor['nama']) . '</option>';
-                }
-                echo '</select>
+            echo '<div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Organisasi</label>
+                            <input type="text" class="form-control" name="nama_organisasi" value="' . ($isEdit ? htmlspecialchars($data['nama_organisasi']) : '') . '" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nama Keahlian</label>
-                        <input type="text" class="form-control" name="nama_keahlian" value="' . ($isEdit ? htmlspecialchars($data['nama_keahlian']) : '') . '" required>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Warna</label>
+                            <input type="color" class="form-control form-control-color" name="warna" value="' . ($isEdit ? $data['warna'] : '#fbbf24') . '">
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Warna</label>
-                        <input type="color" class="form-control form-control-color" name="warna" value="' . ($isEdit ? $data['warna'] : '#fbbf24') . '">
-                    </div>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
-            </div>';
-                break;
+                <div class="mb-3">
+                    <label class="form-label">Deskripsi</label>
+                    <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
+                </div>';
+            break;
+
 
             case 'kategori_organ':
                 echo '<div class="row">

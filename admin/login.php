@@ -15,7 +15,7 @@ class Database
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";port=3307 ;dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
