@@ -63,8 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'delete':
-            // ambil id dari POST dulu, kalau tidak ada coba dari GET
-            $id = $_POST['id'] ?? $_GET['id'] ?? null;
+            // Untuk jadwal_praktek, gunakan tempat_id
+            if ($table == 'jadwal_praktek') {
+                $id = $_POST['tempat_id'] ?? $_GET['tempat_id'] ?? null;
+            } else {
+                $id = $_POST['id'] ?? $_GET['id'] ?? null;
+            }
+
             if ($id === null) {
                 die('ID untuk delete tidak ditemukan.');
             }
@@ -105,7 +110,7 @@ function handleAdd($db, $table, $data)
             // Validasi input tempat praktek
             if (
                 empty($data['nama_tempat']) || empty($data['alamat']) || empty($data['telp'])
-                || empty($data['gmaps_link']) || empty($data['gambar'])
+                || empty($data['gmaps_link'])
             ) {
                 die("Harap lengkapi semua data tempat praktek sebelum menyimpan.");
             }
@@ -120,7 +125,7 @@ function handleAdd($db, $table, $data)
                 $data['alamat'],
                 $data['telp'],
                 $data['gmaps_link'],
-                $data['gambar']
+                $gambar
             ]);
 
             // Ambil ID tempat praktek yang baru ditambahkan
@@ -196,7 +201,7 @@ function handleEdit($db, $table, $data)
                 $data['alamat'],
                 $data['telp'],
                 $data['gmaps_link'] ?? null,
-                $data['gambar'] ?? null,
+                $gambar,
                 $data['tempat_id']
             ]);
 
@@ -239,8 +244,20 @@ function handleEdit($db, $table, $data)
 
 function handleDelete($db, $table, $id)
 {
-    $stmt = $db->prepare("DELETE FROM $table WHERE id = ?");
-    $stmt->execute([$id]);
+    // Untuk jadwal praktek, hapus berdasarkan tempat_id
+    if ($table == 'jadwal_praktek') {
+        // Hapus waktu praktek dulu
+        $stmt = $db->prepare("DELETE FROM waktu_praktek WHERE tempat_id = ?");
+        $stmt->execute([$id]);
+
+        // Hapus tempat praktek
+        $stmt = $db->prepare("DELETE FROM tempat_praktek WHERE id = ?");
+        $stmt->execute([$id]);
+    } else {
+        // Untuk tabel lain, delete biasa
+        $stmt = $db->prepare("DELETE FROM $table WHERE id = ?");
+        $stmt->execute([$id]);
+    }
 }
 
 // Get current table
@@ -442,6 +459,27 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         .mb-3.position-relative {
             position: relative;
         }
+
+        /* Styling untuk gambar di tabel */
+        .table img {
+            width: 100px;
+            /* Lebar tetap */
+            height: 80px;
+            /* Tinggi tetap */
+            object-fit: cover;
+            /* Crop gambar agar proporsional */
+            border-radius: 8px;
+            /* Sudut membulat */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            /* Bayangan halus */
+        }
+
+        /* Opsional: Hover effect untuk gambar */
+        .table img:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -528,7 +566,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <h5 class="modal-title">Tambah <?= ucwords(str_replace('_', ' ', $currentTable)) ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="add">
                         <input type="hidden" name="table" value="<?= $currentTable ?>">
@@ -551,7 +589,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <h5 class="modal-title">Edit <?= ucwords(str_replace('_', ' ', $currentTable)) ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" id="edit_tempat_id" name="tempat_id">
                         <input type="hidden" name="action" value="edit">
@@ -585,12 +623,21 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             if (confirm('Apakah Anda yakin ingin menghapus "' + name + '"?')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.innerHTML = `
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="table" value="<?= $currentTable ?>">
-            ${id ? `<input type="hidden" name="id" value="${id}">` : ''}
-            ${tempatId ? `<input type="hidden" name="tempat_id" value="${tempatId}">` : ''}
-        `;
+
+                <?php if ($currentTable == 'jadwal_praktek'): ?>
+                    form.innerHTML = `
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="table" value="<?= $currentTable ?>">
+                <input type="hidden" name="tempat_id" value="${tempatId}">
+            `;
+                <?php else: ?>
+                    form.innerHTML = `
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="table" value="<?= $currentTable ?>">
+                <input type="hidden" name="id" value="${id}">
+            `;
+                <?php endif; ?>
+
                 document.body.appendChild(form);
                 form.submit();
             }
@@ -658,45 +705,45 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
         `;
+                // Set timeout untuk memastikan DOM sudah ready
+                setTimeout(() => {
+                    const addBtn = document.getElementById('add-jadwal');
+                    if (addBtn) {
+                        addBtn.addEventListener('click', () => {
+                            const container = document.getElementById('jadwal-container');
+                            const item = document.createElement('div');
+                            item.classList.add('jadwal-item', 'mb-3', 'border', 'p-2', 'rounded');
+                            item.innerHTML = `
+                        <label>Hari</label>
+                        <input type="text" class="form-control mb-2" name="hari[]" required>
+                        <label>Jam</label>
+                        <input type="text" class="form-control mb-2" name="waktu[]" required>
+                        <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
+                    `;
+                            container.appendChild(item);
+                        });
+                    }
 
-                // Tambahkan JS dinamis
-                html += `
-        <script>
-            document.getElementById('add-jadwal').addEventListener('click', () => {
-                const container = document.getElementById('jadwal-container');
-                const item = document.createElement('div');
-                item.classList.add('jadwal-item', 'mb-3', 'border', 'p-2', 'rounded');
-                item.innerHTML = \`
-                    <label>Hari</label>
-                    <input type="text" class="form-control mb-2" name="hari[]" required>
-                    <label>Jam</label>
-                    <input type="text" class="form-control mb-2" name="waktu[]" required>
-                    <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
-                \`;
-                container.appendChild(item);
-            });
+                    document.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('remove-jadwal')) {
+                            e.target.parentElement.remove();
+                        }
+                    });
+                }, 100);
 
-            document.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-jadwal')) {
-                    e.target.parentElement.remove();
-                }
-            });
+            <?php endif; ?>
+
+            return html;
+        }
     </script>
-    `;
-<?php endif; ?>
 
-return html;
-}
-
-</script>
-
-<?php
-// Function to render table headers
-function renderTableHeader($table)
-{
-    switch ($table) {
-        case 'jadwal_praktek':
-            echo '
+    <?php
+    // Function to render table headers
+    function renderTableHeader($table)
+    {
+        switch ($table) {
+            case 'jadwal_praktek':
+                echo '
         <tr>
             <th>Nama Tempat</th>
             <th>Alamat</th>
@@ -708,171 +755,182 @@ function renderTableHeader($table)
             <th>Aksi</th>
         </tr>
     ';
-            break;
-        case 'keahlian_khusus':
-            echo '<tr><th>ID</th><th>Keahlian</th><th>Deskripsi</th><th>Aksi</th></tr>';
-            break;
-        case 'kategori_organ':
-            echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
-            break;
-        case 'penyakit':
-            echo '<tr><th>ID</th><th>Kategori</th><th>Nama</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr>';
-            break;
+                break;
+            case 'keahlian_khusus':
+                echo '<tr><th>ID</th><th>Keahlian</th><th>Deskripsi</th><th>Aksi</th></tr>';
+                break;
+            case 'kategori_organ':
+                echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
+                break;
+            case 'penyakit':
+                echo '<tr><th>ID</th><th>Kategori</th><th>Nama</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr>';
+                break;
+        }
     }
-}
 
-// Function to render table rows
-function renderTableRow($table, $row, $db)
-{
-    echo '<tr>';
+    // Function to render table rows
+    function renderTableRow($table, $row, $db)
+    {
+        echo '<tr>';
 
-    switch ($table) {
+        switch ($table) {
 
-        case 'jadwal_praktek':
-            // Kolom Nama Tempat
-            echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
-            
-            // Kolom Alamat
-            echo '<td>' . htmlspecialchars(substr($row['alamat'] ?? '', 0, 50)) . '...</td>';
-            
-            // Kolom No Telp
-            echo '<td>' . htmlspecialchars($row['telp'] ?? '') . '</td>';
-            
-            // Kolom Hari (hanya hari saja)
-            echo '<td>';
-            $jadwalQuery = $db->prepare("SELECT hari FROM waktu_praktek WHERE tempat_id=?");
-            $jadwalQuery->execute([$row['tempat_id']]);
-            $jadwals = $jadwalQuery->fetchAll(PDO::FETCH_ASSOC);
+            case 'jadwal_praktek':
+                // Kolom Nama Tempat
+                echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
 
-            if ($jadwals) {
-                echo '<ul style="padding-left:15px; margin:0;">';
-                foreach ($jadwals as $j) {
-                    echo '<li>' . htmlspecialchars($j['hari']) . '</li>';
+                // Kolom Alamat
+                echo '<td>' . htmlspecialchars(substr($row['alamat'] ?? '', 0, 50)) . '...</td>';
+
+                // Kolom No Telp
+                echo '<td>' . htmlspecialchars($row['telp'] ?? '') . '</td>';
+
+                // Kolom Hari (hanya hari saja)
+                echo '<td>';
+                $jadwalQuery = $db->prepare("SELECT hari FROM waktu_praktek WHERE tempat_id=?");
+                $jadwalQuery->execute([$row['tempat_id']]);
+                $jadwals = $jadwalQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($jadwals) {
+                    $hariList = [];
+                    foreach ($jadwals as $j) {
+                        $hariList[] = htmlspecialchars($j['hari']);
+                    }
+                    echo implode('<br>', $hariList);
+                } else {
+                    echo '-';
                 }
-                echo '</ul>';
-            } else {
-                echo '-';
-            }
-            echo '</td>';
-            
-            // Kolom Jam (hanya waktu saja)
-            echo '<td>';
-            $jamQuery = $db->prepare("SELECT waktu FROM waktu_praktek WHERE tempat_id=?");
-            $jamQuery->execute([$row['tempat_id']]);
-            $jams = $jamQuery->fetchAll(PDO::FETCH_ASSOC);
+                echo '</td>';
 
-            if ($jams) {
-                echo '<ul style="padding-left:15px; margin:0;">';
-                foreach ($jams as $j) {
-                    echo '<li>' . htmlspecialchars($j['waktu']) . '</li>';
+                // Kolom Jam (hanya waktu saja)
+                echo '<td>';
+                $jamQuery = $db->prepare("SELECT waktu FROM waktu_praktek WHERE tempat_id=?");
+                $jamQuery->execute([$row['tempat_id']]);
+                $jams = $jamQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($jams) {
+                    $jamList = [];
+                    foreach ($jams as $j) {
+                        $jamList[] = htmlspecialchars($j['waktu']);
+                    }
+                    echo implode('<br>', $jamList);
+                } else {
+                    echo '-';
                 }
-                echo '</ul>';
-            } else {
-                echo '-';
-            }
-            echo '</td>';
-            
-            // Kolom Link G.maps
-            echo '<td>';
-            if (!empty($row['gmaps_link'])) {
-                echo '<a href="' . htmlspecialchars($row['gmaps_link']) . '" target="_blank">Lihat Peta</a>';
-            } else {
-                echo '-';
-            }
-            echo '</td>';
-            
-            // Kolom Gambar
-            echo '<td>';
-            if (!empty($row['gambar'])) {
-                echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '" alt="Gambar" width="80" class="rounded">';
-            } else {
-                echo 'Tidak ada gambar';
-            }
-            echo '</td>';
-            
-            // Kolom Aksi (Edit & Delete) - PINDAH KE SINI
-            $tempatId = $row['tempat_id'] ?? null;
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
-                onclick="editData(null, ' . $tempatId . ', ' . htmlspecialchars(json_encode($row)) . ')">
-                <i class="fas fa-edit"></i>
-            </button>';
-            
-            echo '<button class="btn btn-sm btn-danger" 
-                onclick="deleteData(null, ' . $tempatId . ', \'' . htmlspecialchars($row['nama_tempat']) . '\')">
-                <i class="fas fa-trash"></i>
-            </button>';
-            echo '</td>';
-            break;
+                echo '</td>';
 
-        case 'keahlian_khusus':
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama_keahlian']) . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
-            
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
+
+                // Kolom Link G.maps
+                echo '<td>';
+                if (!empty($row['gmaps_link'])) {
+                    echo '<a href="' . htmlspecialchars($row['gmaps_link']) . '" target="_blank">Lihat Peta</a>';
+                } else {
+                    echo '-';
+                }
+                echo '</td>';
+
+                // Kolom Gambar
+                echo '<td>';
+                if (!empty($row['gambar'])) {
+                    echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '">';
+                } else {
+                    echo 'Tidak ada gambar';
+                }
+                echo '</td>';
+
+                // Kolom Aksi (Edit & Delete)
+                $tempatId = $row['tempat_id'] ?? null;
+
+                // Ambil semua jadwal untuk tempat ini
+                $jadwalFullQuery = $db->prepare("SELECT hari, waktu FROM waktu_praktek WHERE tempat_id=?");
+                $jadwalFullQuery->execute([$tempatId]);
+                $allJadwals = $jadwalFullQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                // Gabungkan data tempat dengan jadwal
+                $dataWithJadwal = $row;
+                $dataWithJadwal['jadwal'] = $allJadwals;
+
+                echo '<td class="text-nowrap">';
+                echo '<button class="btn btn-sm btn-warning me-2" 
+        onclick=\'editData(null, ' . $tempatId . ', ' . json_encode($dataWithJadwal) . ')\'>
+        <i class="fas fa-edit"></i>
+    </button>';
+
+                echo '<button class="btn btn-sm btn-danger" 
+        onclick="deleteData(null, ' . $tempatId . ', \'' . htmlspecialchars($row['nama_tempat']) . '\')">
+        <i class="fas fa-trash"></i>
+    </button>';
+                echo '</td>';
+                break;
+
+            case 'keahlian_khusus':
+                echo '<td>' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama_keahlian']) . '</td>';
+                echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
+
+                echo '<td>';
+                echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
+                echo '<button class="btn btn-sm btn-danger" 
                 onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama_keahlian']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
-            
-        case 'kategori_organ':
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
-            echo '<td>' . $row['urutan'] . '</td>';
-            echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
-            
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
+                echo '</td>';
+                break;
+
+            case 'kategori_organ':
+                echo '<td>' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
+                echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
+                echo '<td>' . $row['urutan'] . '</td>';
+                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
+
+                echo '<td>';
+                echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
+                echo '<button class="btn btn-sm btn-danger" 
                 onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
-            
-        case 'penyakit':
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['kategori_nama'] ?? '') . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
-            echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
-            
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
+                echo '</td>';
+                break;
+
+            case 'penyakit':
+                echo '<td>' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['kategori_nama'] ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
+                echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
+                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
+
+                echo '<td>';
+                echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
+                echo '<button class="btn btn-sm btn-danger" 
                 onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
+                echo '</td>';
+                break;
+        }
+
+        echo '</tr>';
     }
-    
-    echo '</tr>';
-}
 
-// Function to render forms
-function renderForm($table, $data = null, $categories = [], $tempats = [])
-{
-    $isEdit = $data !== null;
+    // Function to render forms
+    function renderForm($table, $data = null, $categories = [], $tempats = [])
+    {
+        $isEdit = $data !== null;
 
-    switch ($table) {
+        switch ($table) {
 
-        case 'jadwal_praktek':
-            echo '
+            case 'jadwal_praktek':
+                echo '
     <div class="row">
         <div class="col-md-6">
             <div class="mb-3">
@@ -934,11 +992,11 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
         });
     </script>
     ';
-            break;
+                break;
 
 
-        case 'keahlian_khusus':
-            echo '<div class="row">
+            case 'keahlian_khusus':
+                echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Nama Keahlian</label>
@@ -956,10 +1014,10 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
                 <label class="form-label">Deskripsi</label>
                 <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
             </div>';
-            break;
+                break;
 
-        case 'kategori_organ':
-            echo '<div class="row">
+            case 'kategori_organ':
+                echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Nama Kategori</label>
@@ -988,20 +1046,20 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
                 <label class="form-label">Deskripsi</label>
                 <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
             </div>';
-            break;
+                break;
 
-        case 'penyakit':
-            echo '<div class="row">
+            case 'penyakit':
+                echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Kategori Organ</label>
                         <select class="form-select" name="kategori_id" required>';
-            echo '<option value="">Pilih Kategori</option>';
-            foreach ($categories as $category) {
-                $selected = ($isEdit && $data['kategori_id'] == $category['id']) ? 'selected' : '';
-                echo '<option value="' . $category['id'] . '" ' . $selected . '>' . htmlspecialchars($category['nama']) . '</option>';
-            }
-            echo '</select>
+                echo '<option value="">Pilih Kategori</option>';
+                foreach ($categories as $category) {
+                    $selected = ($isEdit && $data['kategori_id'] == $category['id']) ? 'selected' : '';
+                    echo '<option value="' . $category['id'] . '" ' . $selected . '>' . htmlspecialchars($category['nama']) . '</option>';
+                }
+                echo '</select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Penyakit</label>
@@ -1048,10 +1106,10 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
                 <label class="form-label">Cara Mengurangi</label>
                 <textarea class="form-control" name="cara_mengurangi" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mengurangi']) : '') . '</textarea>
             </div>';
-            break;
+                break;
+        }
     }
-}
-?>
+    ?>
 
 </body>
 

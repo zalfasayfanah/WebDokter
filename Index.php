@@ -2,6 +2,31 @@
 include 'config/Koneksi.php';
 include 'includes/header.php';
 ?>
+<?php
+
+$database = new Database();
+$db = $database->getConnection();
+
+// Query untuk mengambil data jadwal praktek
+$query = "
+    SELECT 
+        tp.id AS tempat_id,
+        tp.nama_tempat,
+        tp.alamat,
+        tp.telp,
+        tp.gmaps_link,
+        tp.gambar,
+        GROUP_CONCAT(CONCAT(wp.hari, '|', wp.waktu) ORDER BY wp.hari SEPARATOR ';;') AS jadwal
+    FROM tempat_praktek tp
+    LEFT JOIN waktu_praktek wp ON tp.id = wp.tempat_id
+    GROUP BY tp.id, tp.nama_tempat, tp.alamat, tp.telp, tp.gmaps_link, tp.gambar
+    ORDER BY tp.nama_tempat
+";
+
+$stmt = $db->prepare($query);
+$stmt->execute();
+$jadwalPraktek = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
 
 <link rel="stylesheet" href="assets/css/Index.css">
 
@@ -866,86 +891,65 @@ include 'includes/header.php';
 
     <!-- ====== Jadwal Praktek ====== -->
     <section id="jadwal" class="jadwal">
-        <div class="judul-jadwal">
-            <h2>Jadwal Praktek</h2>
-        </div>
-        <p>Berikut adalah jadwal praktek dokter yang dapat Anda kunjungi di beberapa lokasi pelayanan kesehatan.</p>
+    <div class="judul-jadwal">
+        <h2>Jadwal Praktek</h2>
+    </div>
+    <p>Berikut adalah jadwal praktek dokter yang dapat Anda kunjungi di beberapa lokasi pelayanan kesehatan.</p>
 
-        <div class="jadwal-cards">
-
-            <!-- Card 1 -->
+    <div class="jadwal-cards">
+        <?php foreach ($jadwalPraktek as $tempat): ?>
+            <!-- Card -->
             <div class="card">
-                <a href="https://www.google.com/maps/dir//Jl.+Kedungmundu+No.214..." target="_blank" style="text-decoration:none; color:inherit;">
-                    <img src="assets/images/RSUNIMUS.webp" alt="RS Unimus">
+                <a href="<?= htmlspecialchars($tempat['gmaps_link'] ?? '#') ?>" target="_blank" style="text-decoration:none; color:inherit;">
+                    <?php if (!empty($tempat['gambar'])): ?>
+                        <img src="admin/assets/images/<?= htmlspecialchars($tempat['gambar']) ?>" alt="<?= htmlspecialchars($tempat['nama_tempat']) ?>">
+                    <?php else: ?>
+                        <img src="assets/images/default-hospital.jpg" alt="Default Image">
+                    <?php endif; ?>
+                    
                     <div class="card-body">
-                        <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Rumah Sakit Unimus</h3>
-                        <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
+                        <h3>
+                            <i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>
+                            <?= htmlspecialchars($tempat['nama_tempat']) ?>
+                        </h3>
+                        <p class="alamat">
+                            <?= htmlspecialchars($tempat['alamat']) ?><br>
+                            Telp: <?= htmlspecialchars($tempat['telp']) ?>
+                        </p>
                     </div>
                 </a>
+                
                 <table>
                     <tr>
                         <th>Hari</th>
                         <th>Waktu</th>
                     </tr>
-                    <tr>
-                        <td>Senin</td>
-                        <td>13:00 - 15:00</td>
-                    </tr>
-                    <tr>
-                        <td>Selasa</td>
-                        <td>13:00 - 15:00</td>
-                    </tr>
-                    <tr>
-                        <td>Rabu</td>
-                        <td>13:00 - 15:00</td>
-                    </tr>
+                    <?php 
+                    // Parse jadwal yang digabung
+                    if (!empty($tempat['jadwal'])) {
+                        $jadwalList = explode(';;', $tempat['jadwal']);
+                        foreach ($jadwalList as $jadwal) {
+                            list($hari, $waktu) = explode('|', $jadwal);
+                            echo '<tr>';
+                            echo '<td>' . htmlspecialchars($hari) . '</td>';
+                            echo '<td>' . htmlspecialchars($waktu) . '</td>';
+                            echo '</tr>';
+                        }
+                    } else {
+                        echo '<tr><td colspan="2" class="text-center">Tidak ada jadwal</td></tr>';
+                    }
+                    ?>
                 </table>
             </div>
+        <?php endforeach; ?>
 
-            <!-- Card 2 -->
-            <div class="card">
-                <a href="https://www.google.com/maps?um=1&ie=UTF-8..." target="_blank" style="text-decoration:none; color:inherit;">
-                    <img src="assets/images/RSKUSUMA.webp" alt="RS Kusuma Ungaran">
-                    <div class="card-body">
-                        <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Rumah Sakit Kusuma Ungaran</h3>
-                        <p class="alamat">Jl. Letjend Suprapto No.62, Ungaran<br>Telp: 0812345678910</p>
-                    </div>
-                </a>
-                <table>
-                    <tr>
-                        <th>Hari</th>
-                        <th>Waktu</th>
-                    </tr>
-                    <tr>
-                        <td>Senin - Jumat</td>
-                        <td>18:00 - 21:00</td>
-                    </tr>
-                </table>
+        <?php if (empty($jadwalPraktek)): ?>
+            <div class="col-12 text-center">
+                <p>Belum ada jadwal praktek yang tersedia.</p>
             </div>
-
-            <!-- Card 3 -->
-            <div class="card">
-                <a href="https://www.google.com/maps/dir//Jl.+Petek..." target="_blank" style="text-decoration:none; color:inherit;">
-                    <img src="assets/images/KLINIKPRATAMA.webp" alt="Klinik Pratama Unimus">
-                    <div class="card-body">
-                        <h3><i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>Klinik Pratama Unimus</h3>
-                        <p class="alamat">Jl. Kedungmundu No.214, Tembalang, Kota Semarang<br>Telp: 0812345678910</p>
-                    </div>
-                </a>
-                <table>
-                    <tr>
-                        <th>Hari</th>
-                        <th>Waktu</th>
-                    </tr>
-                    <tr>
-                        <td>Sabtu</td>
-                        <td>09:00 - 12:00</td>
-                    </tr>
-                </table>
-            </div>
-
-        </div>
-    </section>
+        <?php endif; ?>
+    </div>
+</section>
     <!-- ====== FOOOTERRR ====== -->
     <?php include 'includes/footer.php'; ?>
 
