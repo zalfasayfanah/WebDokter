@@ -1,20 +1,12 @@
 <?php
 require_once '../config/Koneksi.php';
-
 $database = new Database();
 $db = $database->getConnection();
 
-// Ambil semua kategori penyakit aktif
-$query = "SELECT * FROM kategori_organ WHERE status = 'aktif' ORDER BY urutan ASC";
+// Query data kategori organ dari tabel
+$query = "SELECT * FROM kategori_organ_home WHERE status='aktif' ORDER BY id ASC";
 $stmt = $db->prepare($query);
 $stmt->execute();
-$kategori_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Ambil data dokter untuk header
-$query_dokter = "SELECT * FROM dokter WHERE id = 1";
-$stmt_dokter = $db->prepare($query_dokter);
-$stmt_dokter->execute();
-$dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -22,37 +14,98 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penyakit - <?php echo $dokter['nama']; ?></title>
+    <title>Penyakit Dalam</title>
     <link rel="stylesheet" href="../assets/css/style_fixed.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* === GLOBAL STYLE === */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f5f7fa;
+            background-color: #f9fafb;
             margin: 0;
             padding: 0;
+            color: #0a1a44;
         }
 
+        /* === HERO SECTION === */
         .hero-section {
-            background-color: #1E3A8A;
-            color: white;
+            position: relative;
+            background: linear-gradient(135deg, #0a1a44 0%, #142e6e 50%, #1e3a8a 100%);
+            color: #ffffff;
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 7rem 2rem 9rem;
+            overflow: hidden;
         }
 
-        .hero-section h1 {
-            font-size: 2.5rem;
+        /* Cahaya lembut dekoratif */
+        .hero-section::before,
+        .hero-section::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(251,191,36,0.25), transparent);
+            animation: float 8s ease-in-out infinite;
+        }
+        .hero-section::before {
+            top: -100px;
+            left: -100px;
+            width: 250px;
+            height: 250px;
+        }
+        .hero-section::after {
+            bottom: -80px;
+            right: -80px;
+            width: 200px;
+            height: 200px;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(15px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Animasi Fade In */
+        .fade-in-title {
+            font-size: 3rem;
             margin-bottom: 1rem;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeSlideIn 1s ease forwards;
         }
 
-        .hero-section p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
+        .fade-in-desc {
+            font-size: 1.15rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeSlideIn 1.2s ease forwards;
+            animation-delay: 0.4s;
         }
 
+        .fade-in-search {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeSlideIn 1.2s ease forwards;
+            animation-delay: 0.8s;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === SEARCH BAR === */
         .search-bar {
             max-width: 600px;
-            margin: 0 auto;
+            margin: 2rem auto 0; /* ⬅️ tambahkan jarak atas (2rem) */
             position: relative;
         }
 
@@ -60,12 +113,22 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
             width: 100%;
             padding: 1rem 1.5rem;
             border-radius: 50px;
-            border: none;
+            border: 2px solid #fbbf24;
             outline: none;
             font-size: 1rem;
+            background-color: #ffffff;
+            color: #153b9bff;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
         }
 
+        .search-bar input:focus {
+            box-shadow: 0 0 0 3px rgba(251,191,36,0.4);
+            transform: scale(1.02);
+        }
+
+
+        /* === CARD SECTION === */
         .card-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -74,12 +137,13 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
         }
 
         .card {
-            background: white;
+            background: #ffffff;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             padding: 2rem 1.5rem;
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 5px solid #fbbf24;
         }
 
         .card:hover {
@@ -91,87 +155,81 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
             width: 70px;
             height: 70px;
             margin-bottom: 1rem;
+            object-fit: contain;
         }
 
         .card h3 {
-            color: #1E3A8A;
+            color: #153b9bff;
             font-size: 1.2rem;
             margin-bottom: 0.8rem;
         }
 
         .card p {
             font-size: 0.95rem;
-            color: #555;
+            color: #444;
             margin-bottom: 1.2rem;
         }
 
-        .card button {
-            background-color: #1E3A8A;
-            color: white;
-            border: none;
+        .card a {
+            display: inline-block;
+            background-color: #153b9bff;
+            color: #fbbf24;
             border-radius: 25px;
             padding: 0.6rem 1.5rem;
-            cursor: pointer;
+            text-decoration: none;
             font-size: 0.95rem;
-            transition: background 0.3s;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .card button:hover {
-            background-color: #FBBF24;
-            color: #1E3A8A;
+        .card a:hover {
+            background-color: #fbbf24;
+            color: #153b9bff;
+            box-shadow: 0 4px 15px rgba(251,191,36,0.4);
         }
 
-        .lihat-selengkapnya {
-            text-align: center;
-            margin: 2rem 0 4rem 0;
-        }
+        /* === RESPONSIVE === */
+        @media (max-width: 600px) {
+            .fade-in-title {
+                font-size: 2rem;
+            }
 
-        .lihat-selengkapnya button {
-            background-color: #1E3A8A;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 0.8rem 2rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .lihat-selengkapnya button:hover {
-            background-color: #FBBF24;
-            color: #1E3A8A;
+            .fade-in-desc {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <?php include '../includes/header.php'; ?>
+    <?php 
+    include '../kategoriPenyakit/includes/header.php';
+    ?>
 
     <section class="hero-section">
-        <h1>PENYAKIT</h1>
-        <p>Eksplorasi berbagai kategori penyakit dalam berdasarkan sistem organ dan juga karakteristiknya</p>
+        <div class="hero-content">
+            <h1 class="fade-in-title">Kenali, Pahami, dan Jaga Kesehatan Anda</h1>
+            <p class="fade-in-desc">
+                Jelajahi berbagai kategori penyakit dalam berdasarkan sistem organ tubuh.
+                Dapatkan wawasan, pencegahan, dan pemahaman lebih baik untuk hidup yang lebih sehat.
+            </p>
 
-        <div class="search-bar">
-            <input type="text" placeholder="Cari kategori atau penyakit dalam...">
+            <div class="search-bar fade-in-search">
+                <input type="text" id="searchInput" placeholder="Cari kategori penyakit...">
+            </div>
         </div>
     </section>
 
     <section class="card-container">
-        <?php foreach ($kategori_list as $kategori): ?>
-        <div class="card">
-            <img src="../assets/images/<?php echo htmlspecialchars($kategori['ikon']); ?>" alt="<?php echo htmlspecialchars($kategori['nama']); ?>">
-            <h3><?php echo htmlspecialchars($kategori['nama']); ?></h3>
-            <p><?php echo htmlspecialchars($kategori['deskripsi']); ?></p>
-            <button onclick="window.location.href='penyakit_kategori.php?id=<?php echo $kategori['id']; ?>'">
-                Lihat Semua Penyakit
-            </button>
-        </div>
-        <?php endforeach; ?>
+        <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
+            <div class="card">
+                <img src="../assets/images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama']); ?>">
+                <h3><?php echo htmlspecialchars($row['nama']); ?></h3>
+                <p><?php echo htmlspecialchars($row['deskripsi']); ?></p>
+                <a href="/WebDokter/kategoriPenyakit/penyakit.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
+            </div>
+        <?php } ?>
     </section>
-
-    <div class="lihat-selengkapnya">
-        <button onclick="window.location.href='semua_kategori.php'">Lihat Selengkapnya</button>
-    </div>
 
 </body>
 </html>
