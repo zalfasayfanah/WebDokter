@@ -17,6 +17,7 @@ $stmt->execute();
     <title>Penyakit Dalam</title>
     <link rel="stylesheet" href="../assets/css/style_fixed.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         /* === GLOBAL STYLE === */
         body {
@@ -72,7 +73,6 @@ $stmt->execute();
             margin: 0 auto;
         }
 
-        /* Animasi Fade In */
         .fade-in-title {
             font-size: 3rem;
             margin-bottom: 1rem;
@@ -105,13 +105,15 @@ $stmt->execute();
         /* === SEARCH BAR === */
         .search-bar {
             max-width: 600px;
-            margin: 2rem auto 0; /* ⬅️ tambahkan jarak atas (2rem) */
+            margin: 2rem auto 0;
             position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .search-bar input {
             width: 100%;
-            padding: 1rem 1.5rem;
+            padding: 1rem 3.2rem 1rem 1.5rem;
             border-radius: 50px;
             border: 2px solid #fbbf24;
             outline: none;
@@ -123,10 +125,21 @@ $stmt->execute();
         }
 
         .search-bar input:focus {
-            box-shadow: 0 0 0 3px rgba(251,191,36,0.4);
-            transform: scale(1.02);
+            box-shadow: 0 0 0 4px rgba(251,191,36,0.4);
+            transform: scale(1.05);
         }
 
+        .search-bar .icon {
+            position: absolute;
+            right: 1rem;
+            font-size: 1.3rem;
+            color: #fbbf24;
+            transition: transform 0.3s ease;
+        }
+
+        .search-bar input:focus + .icon {
+            transform: rotate(20deg) scale(1.1);
+        }
 
         /* === CARD SECTION === */
         .card-container {
@@ -202,27 +215,26 @@ $stmt->execute();
 </head>
 <body>
 
-    <?php 
-    include '../kategoriPenyakit/includes/header.php';
-    ?>
+    <?php include '../kategoriPenyakit/includes/header.php'; ?>
 
     <section class="hero-section">
         <div class="hero-content">
             <h1 class="fade-in-title">Kenali, Pahami, dan Jaga Kesehatan Anda</h1>
             <p class="fade-in-desc">
-                Jelajahi berbagai kategori penyakit dalam berdasarkan sistem organ tubuh.
-                Dapatkan wawasan, pencegahan, dan pemahaman lebih baik untuk hidup yang lebih sehat.
+                Temukan berbagai kategori penyakit dalam berdasarkan sistem organ tubuh.
+                Dapatkan pemahaman mendalam untuk menjaga kesehatan Anda dengan lebih baik.
             </p>
 
             <div class="search-bar fade-in-search">
                 <input type="text" id="searchInput" placeholder="Cari kategori penyakit...">
+                <span class="icon">🔍</span>
             </div>
         </div>
     </section>
 
-    <section class="card-container">
+    <section class="card-container" id="cardContainer">
         <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
-            <div class="card">
+            <div class="card" data-name="<?php echo strtolower(htmlspecialchars($row['nama'])); ?>">
                 <img src="../assets/images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama']); ?>">
                 <h3><?php echo htmlspecialchars($row['nama']); ?></h3>
                 <p><?php echo htmlspecialchars($row['deskripsi']); ?></p>
@@ -230,6 +242,20 @@ $stmt->execute();
             </div>
         <?php } ?>
     </section>
+
+    <script>
+        // === INTERAKTIF PENCARIAN REAL-TIME ===
+        const searchInput = document.getElementById('searchInput');
+        const cards = document.querySelectorAll('.card');
+
+        searchInput.addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase();
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                card.style.display = name.includes(searchValue) ? 'block' : 'none';
+            });
+        });
+    </script>
 
 </body>
 </html>
