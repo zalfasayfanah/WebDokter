@@ -9,7 +9,7 @@
                     <i class="fab fa-facebook-f"></i>
                     <span>Dokter Arif Rahman</span>
                 </a>
-                <a href="https://instagram.com/dokter" class="footer-social-link">
+                <a href="https://www.instagram.com/doktermimin?igsh=cW5zZmprM25odDVi" class="footer-social-link">
                     <i class="fab fa-instagram"></i>
                     <span>@doktermimin</span>
                 </a>

@@ -186,7 +186,7 @@ $dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
     
     <div class="main-container">
         <div class="sidebar">
-            <div class="sidebar-item active" onclick="window.location.href='penyakit.php'">
+            <div class="sidebar-item active" onclick="window.location.href='penyakit_kategori.php?id=1'">
                 Mulut & Kerongkongan
             </div>
             <div class="sidebar-item" onclick="window.location.href='penyakit_kategori.php?id=2'">
