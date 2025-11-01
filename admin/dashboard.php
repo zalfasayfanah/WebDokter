@@ -78,6 +78,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
+function handleEdit($db, $table, $data)  
+{
+    $gambar = $_POST['gambar_lama'] ?? '';
+
+    if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
+        $targetDir = __DIR__ . "/assets/images/";
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        $fileName = time() . "_" . basename($_FILES['gambar']['name']);
+        $targetFilePath = $targetDir . $fileName;
+
+        if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $targetFilePath)) {
+            $gambar = $fileName;
+        }
+    }
+
+    switch ($table) {
+        case 'jadwal_praktek':
+            if (empty($data['nama_tempat']) || empty($data['alamat']) || empty($data['telp']) || empty($data['gmaps_link'])) {
+                die("Harap lengkapi semua data tempat praktek sebelum menyimpan.");
+            }
+
+            $stmt = $db->prepare("INSERT INTO tempat_praktek (nama_tempat, alamat, telp, gmaps_link, gambar) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$data['nama_tempat'], $data['alamat'], $data['telp'], $data['gmaps_link'], $gambar]);
+
+            $id_tempat = $db->lastInsertId();
+
+            if (empty($data['hari']) || empty($data['waktu'])) {
+                die("Harap isi minimal satu jadwal praktek.");
+            }
+
+            foreach ($data['hari'] as $i => $hari) {
+                $waktu = $data['waktu'][$i] ?? '';
+                if (!empty($hari) && !empty($waktu)) {
+                    $stmt = $db->prepare("INSERT INTO waktu_praktek (tempat_id, hari, waktu) VALUES (?, ?, ?)");
+                    $stmt->execute([$id_tempat, $hari, $waktu]);
+                }
+            }
+            break;
+
+                case 'Organisasi':
+            $stmt = $db->prepare("UPDATE organisasi SET nama_organisasi=? WHERE id=?");
+            $stmt->execute([$data['nama_organisasi'], $data['id']]);
+            break;
+
+        case 'kategori_organ':
+            $stmt = $db->prepare("INSERT INTO kategori_organ (nama, deskripsi, warna, urutan, status) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$data['nama'], $data['deskripsi'], $data['warna'], $data['urutan'], $data['status']]);
+            break;
+
+        case 'penyakit':
+            $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status']]);
+            break;
+    }
+}
+
 function handleAdd($db, $table, $data)
 {
     $gambar = $_POST['gambar_lama'] ?? '';
@@ -120,73 +179,36 @@ function handleAdd($db, $table, $data)
             }
             break;
 
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("INSERT INTO keahlian_khusus (nama_keahlian, deskripsi, warna) VALUES (?, ?, ?)");
-            $stmt->execute([$data['nama_keahlian'], $data['deskripsi'], $data['warna']]);
+        case 'Organisasi':
+            // HANYA nama_organisasi saja
+            $stmt = $db->prepare("INSERT INTO organisasi (nama_organisasi) VALUES (?)");
+            $stmt->execute([$data['nama_organisasi']]);
             break;
 
         case 'kategori_organ':
             $stmt = $db->prepare("INSERT INTO kategori_organ (nama, deskripsi, warna, urutan, status) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$data['nama'], $data['deskripsi'], $data['warna'], $data['urutan'], $data['status']]);
+            $stmt->execute([
+                $data['nama'], 
+                $data['deskripsi'] ?? '', 
+                $data['warna'] ?? '#3b82f6', 
+                $data['urutan'] ?? 0, 
+                $data['status'] ?? 'aktif'
+            ]);
             break;
 
         case 'penyakit':
             $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status']]);
-            break;
-    }
-}
-
-function handleEdit($db, $table, $data)
-{
-    $gambar = $_POST['gambar_lama'] ?? '';
-
-    if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
-        $targetDir = __DIR__ . "/assets/images/";
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
-        }
-
-        $fileName = time() . "_" . basename($_FILES['gambar']['name']);
-        $targetFilePath = $targetDir . $fileName;
-
-        if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $targetFilePath)) {
-            $gambar = $fileName;
-        }
-    }
-
-    switch ($table) {
-        case 'jadwal_praktek':
-            $stmt = $db->prepare("UPDATE tempat_praktek SET nama_tempat=?, alamat=?, telp=?, gmaps_link=?, gambar=? WHERE id=?");
-            $stmt->execute([$data['nama_tempat'], $data['alamat'], $data['telp'], $data['gmaps_link'] ?? null, $gambar, $data['tempat_id']]);
-
-            $stmt = $db->prepare("DELETE FROM waktu_praktek WHERE tempat_id=?");
-            $stmt->execute([$data['tempat_id']]);
-
-            if (!empty($data['hari']) && !empty($data['waktu'])) {
-                foreach ($data['hari'] as $i => $hari) {
-                    $waktu = $data['waktu'][$i] ?? '';
-                    if (!empty($hari) && !empty($waktu)) {
-                        $stmt = $db->prepare("INSERT INTO waktu_praktek (tempat_id, hari, waktu) VALUES (?, ?, ?)");
-                        $stmt->execute([$data['tempat_id'], $hari, $waktu]);
-                    }
-                }
-            }
-            break;
-
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("UPDATE keahlian_khusus SET nama_keahlian=?, deskripsi=?, warna=? WHERE id=?");
-            $stmt->execute([$data['nama_keahlian'], $data['deskripsi'], $data['warna'], $data['id']]);
-            break;
-
-        case 'kategori_organ':
-            $stmt = $db->prepare("UPDATE kategori_organ SET nama=?, deskripsi=?, warna=?, urutan=?, status=? WHERE id=?");
-            $stmt->execute([$data['nama'], $data['deskripsi'], $data['warna'], $data['urutan'], $data['status'], $data['id']]);
-            break;
-
-        case 'penyakit':
-            $stmt = $db->prepare("UPDATE penyakit SET kategori_id=?, nama=?, deskripsi_singkat=?, penyebab_utama=?, gejala=?, bahaya=?, cara_mencegah=?, cara_mengurangi=?, status=? WHERE id=?");
-            $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status'], $data['id']]);
+            $stmt->execute([
+                $data['kategori_id'], 
+                $data['nama'], 
+                $data['deskripsi_singkat'] ?? '', 
+                $data['penyebab_utama'] ?? '', 
+                $data['gejala'] ?? '', 
+                $data['bahaya'] ?? '', 
+                $data['cara_mencegah'] ?? '', 
+                $data['cara_mengurangi'] ?? '', 
+                $data['status'] ?? 'aktif'
+            ]);
             break;
     }
 }
@@ -220,8 +242,8 @@ function getData($db, $table)
             ");
             break;
 
-        case 'keahlian_khusus':
-            $stmt = $db->prepare("SELECT * FROM keahlian_khusus ORDER BY nama_keahlian");
+        case 'Organisasi':
+            $stmt = $db->prepare("SELECT * FROM organisasi ORDER BY nama_organisasi");
             break;
 
         case 'kategori_organ':
@@ -231,6 +253,10 @@ function getData($db, $table)
         case 'penyakit':
             $stmt = $db->prepare("SELECT p.*, k.nama as kategori_nama FROM penyakit p LEFT JOIN kategori_organ k ON p.kategori_id = k.id ORDER BY k.nama, p.nama");
             break;
+
+        default:
+            // Jika tabel tidak dikenali, kembalikan array kosong
+            return [];
     }
 
     $stmt->execute();
@@ -354,8 +380,8 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 <a href="?table=jadwal_praktek" class="nav-link <?= $currentTable == 'jadwal_praktek' ? 'active' : '' ?>">
                     <i class="fas fa-calendar-alt me-2"></i> Jadwal Praktek
                 </a>
-                <a href="?table=keahlian_khusus" class="nav-link <?= $currentTable == 'keahlian_khusus' ? 'active' : '' ?>">
-                    <i class="fas fa-star me-2"></i> Keahlian Khusus
+                <a href="?table=Organisasi" class="nav-link <?= $currentTable == 'Organisasi' ? 'active' : '' ?>">
+                    <i class="fas fa-star me-2"></i>  Organisasi
                 </a>
                 <a href="?table=kategori_organ" class="nav-link <?= $currentTable == 'kategori_organ' ? 'active' : '' ?>">
                     <i class="fas fa-list me-2"></i> Kategori Organ
@@ -565,24 +591,17 @@ function generateEditForm(data) {
                 }
             });
         }, 100);
-    <?php endif; ?>
+   <?php endif; ?>
 
-    <?php if ($currentTable == 'keahlian_khusus'): ?>
-        html = `
-            <div class="mb-3">
-                <label class="form-label">Nama Keahlian</label>
-                <input type="text" class="form-control" name="nama_keahlian" value="${data.nama_keahlian}" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="3">${data.deskripsi || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Warna</label>
-                <input type="color" class="form-control form-control-color" name="warna" value="${data.warna || '#fbbf24'}">
-            </div>
-        `;
+    <?php if ($currentTable == 'Organisasi'): ?>
+    html = `
+        <div class="mb-3">
+            <label class="form-label">Nama Organisasi</label>
+            <input type="text" class="form-control" name="nama_organisasi" value="${data.nama_organisasi}" required>
+        </div>
+    `;
     <?php endif; ?>
+    
 
     <?php if ($currentTable == 'kategori_organ'): ?>
         html = `
@@ -683,8 +702,8 @@ function renderTableHeader($table)
                 <th>Aksi</th>
             </tr>';
             break;
-        case 'keahlian_khusus':
-            echo '<tr><th>ID</th><th>Keahlian</th><th>Deskripsi</th><th>Warna</th><th>Aksi</th></tr>';
+        case 'Organisasi':
+             echo '<tr><th>ID</th><th>Nama Organisasi</th><th>Aksi</th></tr>';
             break;
         case 'kategori_organ':
             echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
@@ -774,19 +793,17 @@ function renderTableRow($table, $row, $db)
             echo '</td>';
             break;
 
-        case 'keahlian_khusus':
+         case 'Organisasi':
             echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama_keahlian']) . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
-            echo '<td><span class="badge" style="background-color: ' . $row['warna'] . '">' . $row['warna'] . '</span></td>';
-
+            echo '<td>' . htmlspecialchars($row['nama_organisasi']) . '</td>';
+            // HAPUS baris yang menampilkan warna
             echo '<td>';
             echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
             echo '<button class="btn btn-sm btn-danger" 
-                onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama_keahlian']) . '\')">
+                onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama_organisasi']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
             echo '</td>';
@@ -905,19 +922,12 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
             ';
             break;
 
-        case 'keahlian_khusus':
+        case 'Organisasi':
             echo '<div class="mb-3">
-                <label class="form-label">Nama Keahlian</label>
-                <input type="text" class="form-control" name="nama_keahlian" value="' . ($isEdit ? htmlspecialchars($data['nama_keahlian']) : '') . '" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Warna</label>
-                <input type="color" class="form-control form-control-color" name="warna" value="' . ($isEdit ? $data['warna'] : '#fbbf24') . '">
+                <label class="form-label">Nama Organisasi</label>
+                <input type="text" class="form-control" name="nama_organisasi" value="' . ($isEdit ? htmlspecialchars($data['nama_organisasi']) : '') . '" required>
             </div>';
+
             break;
 
         case 'kategori_organ':
