@@ -5,17 +5,17 @@
             <h3 class="footer-title">Dokter Spesialis Penyakit Dalam</h3>
             <p class="footer-slogan">Melayani dengan sepenuh hati untuk kesehatan anda</p>
             <div class="footer-social-links">
-                <a href="https://facebook.com/dokter" class="footer-social-link">
+                <a href="" class="footer-social-link">
                     <i class="fab fa-facebook-f"></i>
-                    <span>Dokter Arif Rahman</span>
+                    <span>@doktermimin</span>
                 </a>
                 <a href="https://www.instagram.com/doktermimin?igsh=cW5zZmprM25odDVi" class="footer-social-link">
                     <i class="fab fa-instagram"></i>
                     <span>@doktermimin</span>
                 </a>
-                <a href="https://tiktok.com/@dokter" class="footer-social-link">
+                <a href="https://www.tiktok.com/@user900289442?_r=1&_t=ZS-91T49nJBKqe" class="footer-social-link">
                     <i class="fab fa-tiktok"></i>
-                    <span>@doktermimin</span>
+                    <span>@simimin</span>
                 </a>
                
             </div>
