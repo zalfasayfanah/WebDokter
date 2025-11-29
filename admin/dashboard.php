@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
-function handleEdit($db, $table, $data)  
+function handleEdit($db, $table, $data)
 {
     $gambar = $_POST['gambar_lama'] ?? '';
 
@@ -98,15 +98,27 @@ function handleEdit($db, $table, $data)
 
     switch ($table) {
         case 'jadwal_praktek':
+            // Validasi data tempat praktek
             if (empty($data['nama_tempat']) || empty($data['alamat']) || empty($data['telp']) || empty($data['gmaps_link'])) {
                 die("Harap lengkapi semua data tempat praktek sebelum menyimpan.");
             }
 
-            $stmt = $db->prepare("INSERT INTO tempat_praktek (nama_tempat, alamat, telp, gmaps_link, gambar) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$data['nama_tempat'], $data['alamat'], $data['telp'], $data['gmaps_link'], $gambar]);
+            // Ambil tempat_id dari form
+            $tempat_id = $data['tempat_id'] ?? null;
 
-            $id_tempat = $db->lastInsertId();
+            if (empty($tempat_id)) {
+                die("ID tempat praktek tidak ditemukan.");
+            }
 
+            // UPDATE data tempat praktek yang sudah ada
+            $stmt = $db->prepare("UPDATE tempat_praktek SET nama_tempat=?, alamat=?, telp=?, gmaps_link=?, gambar=? WHERE id=?");
+            $stmt->execute([$data['nama_tempat'], $data['alamat'], $data['telp'], $data['gmaps_link'], $gambar, $tempat_id]);
+
+            // HAPUS semua jadwal lama untuk tempat praktek ini
+            $stmt = $db->prepare("DELETE FROM waktu_praktek WHERE tempat_id=?");
+            $stmt->execute([$tempat_id]);
+
+            // INSERT jadwal yang baru (termasuk yang ditambahkan)
             if (empty($data['hari']) || empty($data['waktu'])) {
                 die("Harap isi minimal satu jadwal praktek.");
             }
@@ -115,24 +127,24 @@ function handleEdit($db, $table, $data)
                 $waktu = $data['waktu'][$i] ?? '';
                 if (!empty($hari) && !empty($waktu)) {
                     $stmt = $db->prepare("INSERT INTO waktu_praktek (tempat_id, hari, waktu) VALUES (?, ?, ?)");
-                    $stmt->execute([$id_tempat, $hari, $waktu]);
+                    $stmt->execute([$tempat_id, $hari, $waktu]);
                 }
             }
             break;
 
-                case 'Organisasi':
+        case 'Organisasi':
             $stmt = $db->prepare("UPDATE organisasi SET nama_organisasi=? WHERE id=?");
             $stmt->execute([$data['nama_organisasi'], $data['id']]);
             break;
 
         case 'kategori_organ':
-            $stmt = $db->prepare("INSERT INTO kategori_organ (nama, deskripsi, warna, urutan, status) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$data['nama'], $data['deskripsi'], $data['warna'], $data['urutan'], $data['status']]);
+            $stmt = $db->prepare("UPDATE kategori_organ SET nama=?, deskripsi=?, warna=?, urutan=?, status=? WHERE id=?");
+            $stmt->execute([$data['nama'], $data['deskripsi'], $data['warna'], $data['urutan'], $data['status'], $data['id']]);
             break;
 
         case 'penyakit':
-            $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status']]);
+            $stmt = $db->prepare("UPDATE penyakit SET kategori_id=?, nama=?, deskripsi_singkat=?, penyebab_utama=?, gejala=?, bahaya=?, cara_mencegah=?, cara_mengurangi=?, status=? WHERE id=?");
+            $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status'], $data['id']]);
             break;
     }
 }
@@ -188,10 +200,10 @@ function handleAdd($db, $table, $data)
         case 'kategori_organ':
             $stmt = $db->prepare("INSERT INTO kategori_organ (nama, deskripsi, warna, urutan, status) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([
-                $data['nama'], 
-                $data['deskripsi'] ?? '', 
-                $data['warna'] ?? '#3b82f6', 
-                $data['urutan'] ?? 0, 
+                $data['nama'],
+                $data['deskripsi'] ?? '',
+                $data['warna'] ?? '#3b82f6',
+                $data['urutan'] ?? 0,
                 $data['status'] ?? 'aktif'
             ]);
             break;
@@ -199,14 +211,14 @@ function handleAdd($db, $table, $data)
         case 'penyakit':
             $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                $data['kategori_id'], 
-                $data['nama'], 
-                $data['deskripsi_singkat'] ?? '', 
-                $data['penyebab_utama'] ?? '', 
-                $data['gejala'] ?? '', 
-                $data['bahaya'] ?? '', 
-                $data['cara_mencegah'] ?? '', 
-                $data['cara_mengurangi'] ?? '', 
+                $data['kategori_id'],
+                $data['nama'],
+                $data['deskripsi_singkat'] ?? '',
+                $data['penyebab_utama'] ?? '',
+                $data['gejala'] ?? '',
+                $data['bahaya'] ?? '',
+                $data['cara_mencegah'] ?? '',
+                $data['cara_mengurangi'] ?? '',
                 $data['status'] ?? 'aktif'
             ]);
             break;
@@ -233,12 +245,12 @@ function getData($db, $table)
 {
     switch ($table) {
         case 'jadwal_praktek':
+            // Ambil data tempat praktek saja (tanpa join waktu_praktek)
+            // Waktu praktek akan diambil terpisah di renderTableRow
             $stmt = $db->prepare("
-                SELECT tp.id AS tempat_id, tp.nama_tempat, tp.alamat, tp.telp, tp.gmaps_link, tp.gambar,
-                       wp.id AS jadwal_id, wp.hari, wp.waktu
+                SELECT DISTINCT tp.id AS tempat_id, tp.nama_tempat, tp.alamat, tp.telp, tp.gmaps_link, tp.gambar
                 FROM tempat_praktek tp
-                LEFT JOIN waktu_praktek wp ON tp.id = wp.tempat_id
-                ORDER BY tp.nama_tempat, wp.hari
+                ORDER BY tp.nama_tempat
             ");
             break;
 
@@ -276,6 +288,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -287,16 +300,20 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #2e35ecff 100%);
         }
+
         .sidebar .nav-link {
             color: white;
             border-radius: 10px;
             margin: 5px 0;
             transition: all 0.3s;
         }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
             background: rgba(255, 255, 255, 0.2);
             color: white;
         }
+
         .content-header {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
@@ -304,47 +321,58 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 15px;
             margin-bottom: 2rem;
         }
+
         .card {
             border: none;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 25px;
         }
+
         .btn-success {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             border: none;
             border-radius: 25px;
         }
+
         .btn-warning {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border: none;
             border-radius: 25px;
         }
+
         .btn-danger {
             background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
             border: none;
             border-radius: 25px;
         }
+
         .table {
             border-radius: 15px;
             overflow: hidden;
         }
+
         .modal-content {
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
+
         .modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 20px 20px 0 0;
         }
-        .form-control, .form-select {
+
+        .form-control,
+        .form-select {
             border-radius: 10px;
         }
+
         .table img {
             width: 100px;
             height: 80px;
@@ -352,187 +380,327 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
         .table img:hover {
             transform: scale(1.05);
             transition: transform 0.3s ease;
             cursor: pointer;
         }
+
+        /* Style untuk container jadwal agar bisa scroll */
+        #jadwal-container {
+            max-height: 250px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* Custom scrollbar untuk container jadwal */
+        #jadwal-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #jadwal-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #jadwal-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        #jadwal-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Style untuk jadwal item */
+        .jadwal-item {
+            background: white;
+            margin-bottom: 10px !important;
+            padding: 10px !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 8px !important;
+        }
+
+        .jadwal-item:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom width untuk kolom tabel Jadwal Praktek */
+        .table-jadwal-praktek th:nth-child(1),
+        /* Nama Tempat */
+        .table-jadwal-praktek td:nth-child(1) {
+            width: 150px;
+            min-width: 150px;
+        }
+
+        .table-jadwal-praktek th:nth-child(2),
+        /* Alamat */
+        .table-jadwal-praktek td:nth-child(2) {
+            width: 200px;
+            min-width: 200px;
+            max-width: 200px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .table-jadwal-praktek th:nth-child(3),
+        /* No Telp */
+        .table-jadwal-praktek td:nth-child(3) {
+            width: 120px;
+            min-width: 120px;
+        }
+
+        .table-jadwal-praktek th:nth-child(4),
+        /* Hari */
+        .table-jadwal-praktek td:nth-child(4) {
+            width: 120px;
+            min-width: 120px;
+        }
+
+        .table-jadwal-praktek th:nth-child(5),
+        /* Jam - DIPERLEBAR */
+        .table-jadwal-praktek td:nth-child(5) {
+            width: 180px;
+            min-width: 180px;
+            white-space: nowrap;
+        }
+
+        .table-jadwal-praktek th:nth-child(6),
+        /* Link G.maps */
+        .table-jadwal-praktek td:nth-child(6) {
+            width: 100px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .table-jadwal-praktek th:nth-child(7),
+        /* Gambar */
+        .table-jadwal-praktek td:nth-child(7) {
+            width: 120px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .table-jadwal-praktek th:nth-child(8),
+        /* Aksi */
+        .table-jadwal-praktek td:nth-child(8) {
+            width: 100px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Agar tabel bisa scroll horizontal jika terlalu lebar */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        /* Style untuk tabel jadwal praktek */
+        .table-jadwal-praktek {
+            table-layout: fixed;
+            width: 100%;
+        }
     </style>
 </head>
+
 <body class="bg-light">
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar p-3">
-            <div class="text-center mb-4">
-                <h4 class="text-white"><i class="fas fa-user-md"></i> Admin Panel</h4>
-                <p class="text-white-50 mb-3">
-                    <i class="fas fa-user-circle me-2"></i>
-                    <?= isset($_SESSION['admin_nama']) ? htmlspecialchars($_SESSION['admin_nama']) : 'Admin' ?>
-                </p>
-                <a href="logout.php" class="btn btn-sm btn-outline-light">
-                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                </a>
-            </div>
-
-            <nav class="nav flex-column">
-                <a href="?table=jadwal_praktek" class="nav-link <?= $currentTable == 'jadwal_praktek' ? 'active' : '' ?>">
-                    <i class="fas fa-calendar-alt me-2"></i> Jadwal Praktek
-                </a>
-                <a href="?table=Organisasi" class="nav-link <?= $currentTable == 'Organisasi' ? 'active' : '' ?>">
-                    <i class="fas fa-star me-2"></i>  Organisasi
-                </a>
-                <a href="?table=kategori_organ" class="nav-link <?= $currentTable == 'kategori_organ' ? 'active' : '' ?>">
-                    <i class="fas fa-list me-2"></i> Kategori Organ
-                </a>
-                <a href="?table=penyakit" class="nav-link <?= $currentTable == 'penyakit' ? 'active' : '' ?>">
-                    <i class="fas fa-virus me-2"></i> Penyakit
-                </a>
-            </nav>
-        </div>
-
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 p-4">
-            <div class="content-header">
-                <h2><i class="fas fa-tachometer-alt me-3"></i>Dashboard Admin</h2>
-                <p class="mb-0">Kelola data website medis dengan mudah</p>
-            </div>
-
-            <!-- Table Management -->
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-table me-2"></i>
-                        Manajemen <?= ucwords(str_replace('_', ' ', $currentTable)) ?>
-                    </h5>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
-                        <i class="fas fa-plus me-2"></i>Tambah Data
-                    </button>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white"><i class="fas fa-user-md"></i> Admin Panel</h4>
+                    <p class="text-white-50 mb-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <?= isset($_SESSION['admin_nama']) ? htmlspecialchars($_SESSION['admin_nama']) : 'Admin' ?>
+                    </p>
+                    <a href="logout.php" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-dark">
-                                <?php renderTableHeader($currentTable); ?>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($data as $row): ?>
-                                    <?php renderTableRow($currentTable, $row, $db); ?>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+
+                <nav class="nav flex-column">
+                    <a href="?table=jadwal_praktek" class="nav-link <?= $currentTable == 'jadwal_praktek' ? 'active' : '' ?>">
+                        <i class="fas fa-calendar-alt me-2"></i> Jadwal Praktek
+                    </a>
+                    <a href="?table=Organisasi" class="nav-link <?= $currentTable == 'Organisasi' ? 'active' : '' ?>">
+                        <i class="fas fa-star me-2"></i> Organisasi
+                    </a>
+                    <a href="?table=kategori_organ" class="nav-link <?= $currentTable == 'kategori_organ' ? 'active' : '' ?>">
+                        <i class="fas fa-list me-2"></i> Kategori Organ
+                    </a>
+                    <a href="?table=penyakit" class="nav-link <?= $currentTable == 'penyakit' ? 'active' : '' ?>">
+                        <i class="fas fa-virus me-2"></i> Penyakit
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <div class="content-header">
+                    <h2><i class="fas fa-tachometer-alt me-3"></i>Dashboard Admin</h2>
+                    <p class="mb-0">Kelola data website medis dengan mudah</p>
+                </div>
+
+                <!-- Table Management -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-table me-2"></i>
+                            Manajemen <?= ucwords(str_replace('_', ' ', $currentTable)) ?>
+                        </h5>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
+                            <i class="fas fa-plus me-2"></i>Tambah Data
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-jadwal-praktek">
+                                <thead class="table-dark">
+                                    <?php renderTableHeader($currentTable); ?>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($data as $row): ?>
+                                        <?php renderTableRow($currentTable, $row, $db); ?>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add Modal -->
-<div class="modal fade" id="addModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah <?= ucwords(str_replace('_', ' ', $currentTable)) ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah <?= ucwords(str_replace('_', ' ', $currentTable)) ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="table" value="<?= $currentTable ?>">
+                        <?php renderForm($currentTable, null, $categories, $tempats); ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">Simpan</button>
+                    </div>
+                </form>
             </div>
-            <form method="POST" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <input type="hidden" name="action" value="add">
-                    <input type="hidden" name="table" value="<?= $currentTable ?>">
-                    <?php renderForm($currentTable, null, $categories, $tempats); ?>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success">Simpan</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit <?= ucwords(str_replace('_', ' ', $currentTable)) ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit <?= ucwords(str_replace('_', ' ', $currentTable)) ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_tempat_id" name="tempat_id">
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="table" value="<?= $currentTable ?>">
+                        <input type="hidden" name="id" id="edit_id">
+                        <div id="editFormContent"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning">Update</button>
+                    </div>
+                </form>
             </div>
-            <form method="POST" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <input type="hidden" id="edit_tempat_id" name="tempat_id">
-                    <input type="hidden" name="action" value="edit">
-                    <input type="hidden" name="table" value="<?= $currentTable ?>">
-                    <input type="hidden" name="id" id="edit_id">
-                    <div id="editFormContent"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning">Update</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-function editData(id, tempatId, data) {
-    document.getElementById('edit_id').value = id || '';
-    if (document.getElementById('edit_tempat_id')) {
-        document.getElementById('edit_tempat_id').value = tempatId || '';
-    }
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editData(id, tempatId, data) {
+            document.getElementById('edit_id').value = id || '';
+            if (document.getElementById('edit_tempat_id')) {
+                document.getElementById('edit_tempat_id').value = tempatId || '';
+            }
 
-    const formContent = document.getElementById('editFormContent');
-    formContent.innerHTML = generateEditForm(data);
-    new bootstrap.Modal(document.getElementById('editModal')).show();
-}
+            const formContent = document.getElementById('editFormContent');
+            formContent.innerHTML = generateEditForm(data);
 
-function deleteData(id, tempatId, name) {
-    if (confirm('Apakah Anda yakin ingin menghapus "' + name + '"?')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
 
-        <?php if ($currentTable == 'jadwal_praktek'): ?>
-            form.innerHTML = `
+        function deleteData(id, tempatId, name) {
+            if (confirm('Apakah Anda yakin ingin menghapus "' + name + '"?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+
+                <?php if ($currentTable == 'jadwal_praktek'): ?>
+                    form.innerHTML = `
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="table" value="<?= $currentTable ?>">
                 <input type="hidden" name="tempat_id" value="${tempatId}">
             `;
-        <?php else: ?>
-            form.innerHTML = `
+                <?php else: ?>
+                    form.innerHTML = `
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="table" value="<?= $currentTable ?>">
                 <input type="hidden" name="id" value="${id}">
             `;
-        <?php endif; ?>
+                <?php endif; ?>
 
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
 
-function generateEditForm(data) {
-    let html = '';
+        function generateEditForm(data) {
+            let html = '';
 
-    <?php if ($currentTable == 'jadwal_praktek'): ?>
-        let jadwals = data.jadwal || [{hari: '', waktu: ''}];
-        let jadwalFields = '';
-        jadwals.forEach((j, i) => {
-            jadwalFields += `
+            <?php if ($currentTable == 'jadwal_praktek'): ?>
+                let jadwals = data.jadwal || [{
+                    hari: '',
+                    waktu: ''
+                }];
+                let jadwalFields = '';
+
+                jadwals.forEach((j, i) => {
+                    jadwalFields += `
                 <div class="jadwal-item mb-3 border p-2 rounded">
                     <label>Hari</label>
                     <input type="text" class="form-control mb-2" name="hari[]" value="${j.hari}" required>
                     <label>Jam</label>
                     <input type="text" class="form-control mb-2" name="waktu[]" value="${j.waktu}" required>
-                    <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Hapus</button>
                 </div>
             `;
-        });
+                });
 
-        html = `
+                html = `
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -552,7 +720,7 @@ function generateEditForm(data) {
                     <div id="jadwal-container">
                         ${jadwalFields}
                     </div>
-                    <button type="button" id="add-jadwal" class="btn btn-secondary btn-sm mt-2">+ Tambah Jadwal</button>
+                    <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="tambahJadwalBaru()">+ Tambah Jadwal</button>
                     <div class="mb-3 mt-3">
                         <label class="form-label">Link G.maps</label>
                         <input type="text" class="form-control" name="gmaps_link" value="${data.gmaps_link || ''}">
@@ -566,45 +734,19 @@ function generateEditForm(data) {
                 </div>
             </div>
         `;
+            <?php endif; ?>
 
-        setTimeout(() => {
-            const addBtn = document.getElementById('add-jadwal');
-            if (addBtn) {
-                addBtn.addEventListener('click', () => {
-                    const container = document.getElementById('jadwal-container');
-                    const item = document.createElement('div');
-                    item.classList.add('jadwal-item', 'mb-3', 'border', 'p-2', 'rounded');
-                    item.innerHTML = `
-                        <label>Hari</label>
-                        <input type="text" class="form-control mb-2" name="hari[]" required>
-                        <label>Jam</label>
-                        <input type="text" class="form-control mb-2" name="waktu[]" required>
-                        <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
-                    `;
-                    container.appendChild(item);
-                });
-            }
-
-            document.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-jadwal')) {
-                    e.target.parentElement.remove();
-                }
-            });
-        }, 100);
-   <?php endif; ?>
-
-    <?php if ($currentTable == 'Organisasi'): ?>
-    html = `
+            <?php if ($currentTable == 'Organisasi'): ?>
+                html = `
         <div class="mb-3">
             <label class="form-label">Nama Organisasi</label>
             <input type="text" class="form-control" name="nama_organisasi" value="${data.nama_organisasi}" required>
         </div>
     `;
-    <?php endif; ?>
-    
+            <?php endif; ?>
 
-    <?php if ($currentTable == 'kategori_organ'): ?>
-        html = `
+            <?php if ($currentTable == 'kategori_organ'): ?>
+                html = `
             <div class="mb-3">
                 <label class="form-label">Nama Kategori</label>
                 <input type="text" class="form-control" name="nama" value="${data.nama}" required>
@@ -629,10 +771,10 @@ function generateEditForm(data) {
                 </select>
             </div>
         `;
-    <?php endif; ?>
+            <?php endif; ?>
 
-    <?php if ($currentTable == 'penyakit'): ?>
-        html = `
+            <?php if ($currentTable == 'penyakit'): ?>
+                html = `
             <div class="mb-3">
                 <label class="form-label">Kategori Organ</label>
                 <select class="form-select" name="kategori_id" required>
@@ -679,19 +821,105 @@ function generateEditForm(data) {
                 </select>
             </div>
         `;
-    <?php endif; ?>
+            <?php endif; ?>
 
-    return html;
-}
-</script>
+            return html;
+        }
 
-<?php
-// Function to render table headers
-function renderTableHeader($table)
-{
-    switch ($table) {
-        case 'jadwal_praktek':
-            echo '<tr>
+        function tambahJadwalBaru() {
+            console.log('Fungsi tambahJadwalBaru() dipanggil!');
+
+            // Cek modal mana yang sedang terbuka
+            const editModal = document.getElementById('editModal');
+            const addModal = document.getElementById('addModal');
+
+            let container;
+            let isEditModal = false;
+
+            // Tentukan container berdasarkan modal yang aktif
+            if (editModal && editModal.classList.contains('show')) {
+                container = editModal.querySelector('#jadwal-container');
+                isEditModal = true;
+                console.log('Modal EDIT sedang aktif');
+            } else if (addModal && addModal.classList.contains('show')) {
+                container = addModal.querySelector('#jadwal-container');
+                isEditModal = false;
+                console.log('Modal TAMBAH sedang aktif');
+            } else {
+                // Fallback ke cara lama jika tidak ada modal yang terdeteksi
+                container = document.getElementById('jadwal-container');
+                console.log('Menggunakan container default');
+            }
+
+            if (!container) {
+                console.error('Container tidak ditemukan!');
+                alert('Error: Container jadwal tidak ditemukan!');
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.classList.add('jadwal-item', 'mb-3', 'border', 'p-2', 'rounded');
+            item.style.backgroundColor = 'white';
+            item.innerHTML = `
+        <label class="fw-bold text-primary">Hari</label>
+        <input type="text" class="form-control mb-2" name="hari[]" placeholder="Contoh: Senin, Selasa, dll" required>
+        <label class="fw-bold text-primary">Jam</label>
+        <input type="text" class="form-control mb-2" name="waktu[]" placeholder="Contoh: 08:00 - 12:00" required>
+        <button type="button" class="btn btn-danger btn-sm w-100" onclick="hapusJadwal(this)">
+            <i class="fas fa-trash me-1"></i> Hapus Jadwal Ini
+        </button>
+    `;
+
+            container.appendChild(item);
+            console.log('Jadwal baru berhasil ditambahkan!');
+
+            // Hanya scroll jika di modal EDIT (yang punya max-height)
+            if (isEditModal) {
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                    console.log('Container di-scroll ke:', container.scrollHeight);
+                }, 100);
+
+                // Flash effect hijau untuk jadwal yang baru ditambahkan
+                item.style.border = '3px solid #28a745';
+                item.style.transition = 'border 1s ease';
+                setTimeout(() => {
+                    item.style.border = '1px solid #dee2e6';
+                }, 1500);
+            }
+
+            console.log('Total jadwal sekarang:', container.children.length);
+            console.log('Modal Edit?', isEditModal);
+        }
+
+        function hapusJadwal(button) {
+            if (confirm('Yakin ingin menghapus jadwal ini?')) {
+                const jadwalItem = button.closest('.jadwal-item');
+                if (jadwalItem) {
+                    // Animasi fade out
+                    jadwalItem.style.opacity = '0';
+                    jadwalItem.style.transform = 'translateX(-20px)';
+                    jadwalItem.style.transition = 'all 0.3s ease';
+
+                    setTimeout(() => {
+                        jadwalItem.remove();
+                        console.log('Jadwal dihapus!');
+
+                        const container = document.getElementById('jadwal-container');
+                        console.log('Total jadwal sekarang:', container.children.length);
+                    }, 300);
+                }
+            }
+        }
+    </script>
+
+    <?php
+    // Function to render table headers
+    function renderTableHeader($table)
+    {
+        switch ($table) {
+            case 'jadwal_praktek':
+                echo '<tr>
                 <th>Nama Tempat</th>
                 <th>Alamat</th>
                 <th>No Telp</th>
@@ -701,164 +929,179 @@ function renderTableHeader($table)
                 <th>Gambar</th>
                 <th>Aksi</th>
             </tr>';
-            break;
-        case 'Organisasi':
-             echo '<tr><th>ID</th><th>Nama Organisasi</th><th>Aksi</th></tr>';
-            break;
-        case 'kategori_organ':
-            echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
-            break;
-        case 'penyakit':
-            echo '<tr><th>ID</th><th>Kategori</th><th>Nama</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr>';
-            break;
+                break;
+            case 'Organisasi':
+                echo '<tr><th>ID</th><th>Nama Organisasi</th><th>Aksi</th></tr>';
+                break;
+            case 'kategori_organ':
+                echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
+                break;
+            case 'penyakit':
+                echo '<tr><th>ID</th><th>Kategori</th><th>Nama</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr>';
+                break;
+        }
     }
-}
 
-// Function to render table rows
-function renderTableRow($table, $row, $db)
-{
-    echo '<tr>';
+    // Function to render table rows
+    function renderTableRow($table, $row, $db)
+    {
+        // Untuk jadwal_praktek, hanya render 1 kali per tempat_id
+        static $rendered_tempat = [];
 
-    switch ($table) {
-        case 'jadwal_praktek':
-            echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['alamat'] ?? '', 0, 50)) . '...</td>';
-            echo '<td>' . htmlspecialchars($row['telp'] ?? '') . '</td>';
+        echo '<tr>';
 
-            echo '<td>';
-            $jadwalQuery = $db->prepare("SELECT hari FROM waktu_praktek WHERE tempat_id=?");
-            $jadwalQuery->execute([$row['tempat_id']]);
-            $jadwals = $jadwalQuery->fetchAll(PDO::FETCH_ASSOC);
+        switch ($table) {
+            case 'jadwal_praktek':
+                // Cek apakah tempat_id ini sudah di-render
+                $tempat_id = $row['tempat_id'] ?? null;
 
-            if ($jadwals) {
-                $hariList = [];
-                foreach ($jadwals as $j) {
-                    $hariList[] = htmlspecialchars($j['hari']);
+                if (in_array($tempat_id, $rendered_tempat)) {
+                    // Skip jika sudah di-render
+                    echo '</tr>';
+                    return;
                 }
-                echo implode('<br>', $hariList);
-            } else {
-                echo '-';
-            }
-            echo '</td>';
 
-            echo '<td>';
-            $jamQuery = $db->prepare("SELECT waktu FROM waktu_praktek WHERE tempat_id=?");
-            $jamQuery->execute([$row['tempat_id']]);
-            $jams = $jamQuery->fetchAll(PDO::FETCH_ASSOC);
+                // Tandai tempat_id ini sudah di-render
+                $rendered_tempat[] = $tempat_id;
 
-            if ($jams) {
-                $jamList = [];
-                foreach ($jams as $j) {
-                    $jamList[] = htmlspecialchars($j['waktu']);
+                echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($row['alamat'] ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($row['telp'] ?? '') . '</td>';
+
+                // Ambil semua jadwal untuk tempat praktek ini
+                echo '<td>';
+                $jadwalQuery = $db->prepare("SELECT hari FROM waktu_praktek WHERE tempat_id=? ORDER BY id");
+                $jadwalQuery->execute([$tempat_id]);
+                $jadwals = $jadwalQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($jadwals) {
+                    $hariList = [];
+                    foreach ($jadwals as $j) {
+                        $hariList[] = htmlspecialchars($j['hari']);
+                    }
+                    echo implode('<br>', $hariList);
+                } else {
+                    echo '-';
                 }
-                echo implode('<br>', $jamList);
-            } else {
-                echo '-';
-            }
-            echo '</td>';
+                echo '</td>';
 
-            echo '<td>';
-            if (!empty($row['gmaps_link'])) {
-                echo '<a href="' . htmlspecialchars($row['gmaps_link']) . '" target="_blank">Lihat Peta</a>';
-            } else {
-                echo '-';
-            }
-            echo '</td>';
+                echo '<td>';
+                $jamQuery = $db->prepare("SELECT waktu FROM waktu_praktek WHERE tempat_id=? ORDER BY id");
+                $jamQuery->execute([$tempat_id]);
+                $jams = $jamQuery->fetchAll(PDO::FETCH_ASSOC);
 
-            echo '<td>';
-            if (!empty($row['gambar'])) {
-                echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '">';
-            } else {
-                echo 'Tidak ada gambar';
-            }
-            echo '</td>';
+                if ($jams) {
+                    $jamList = [];
+                    foreach ($jams as $j) {
+                        $jamList[] = htmlspecialchars($j['waktu']);
+                    }
+                    echo implode('<br>', $jamList);
+                } else {
+                    echo '-';
+                }
+                echo '</td>';
 
-            $tempatId = $row['tempat_id'] ?? null;
-            $jadwalFullQuery = $db->prepare("SELECT hari, waktu FROM waktu_praktek WHERE tempat_id=?");
-            $jadwalFullQuery->execute([$tempatId]);
-            $allJadwals = $jadwalFullQuery->fetchAll(PDO::FETCH_ASSOC);
+                echo '<td>';
+                if (!empty($row['gmaps_link'])) {
+                    echo '<a href="' . htmlspecialchars($row['gmaps_link']) . '" target="_blank">Lihat Peta</a>';
+                } else {
+                    echo '-';
+                }
+                echo '</td>';
 
-            $dataWithJadwal = $row;
-            $dataWithJadwal['jadwal'] = $allJadwals;
+                echo '<td>';
+                if (!empty($row['gambar'])) {
+                    echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '">';
+                } else {
+                    echo 'Tidak ada gambar';
+                }
+                echo '</td>';
 
-            echo '<td class="text-nowrap">';
-            echo '<button class="btn btn-sm btn-warning me-2" 
-                onclick=\'editData(null, ' . $tempatId . ', ' . json_encode($dataWithJadwal) . ')\'>
+                // Ambil semua jadwal untuk tombol edit
+                $jadwalFullQuery = $db->prepare("SELECT hari, waktu FROM waktu_praktek WHERE tempat_id=? ORDER BY id");
+                $jadwalFullQuery->execute([$tempat_id]);
+                $allJadwals = $jadwalFullQuery->fetchAll(PDO::FETCH_ASSOC);
+
+                $dataWithJadwal = $row;
+                $dataWithJadwal['jadwal'] = $allJadwals;
+
+                echo '<td class="text-nowrap">';
+                echo '<button class="btn btn-sm btn-warning me-2" 
+                onclick=\'editData(null, ' . $tempat_id . ', ' . json_encode($dataWithJadwal) . ')\'>
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
-                onclick="deleteData(null, ' . $tempatId . ', \'' . htmlspecialchars($row['nama_tempat']) . '\')">
+                echo '<button class="btn btn-sm btn-danger" 
+                onclick="deleteData(null, ' . $tempat_id . ', \'' . htmlspecialchars($row['nama_tempat']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
+                echo '</td>';
+                break;
 
-         case 'Organisasi':
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama_organisasi']) . '</td>';
-            // HAPUS baris yang menampilkan warna
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
+            case 'Organisasi':
+                echo '<td>' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama_organisasi']) . '</td>';
+                echo '<td>';
+                echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
+                echo '<button class="btn btn-sm btn-danger" 
                 onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama_organisasi']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
+                echo '</td>';
+                break;
 
-        case 'kategori_organ':
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
-            echo '<td>' . $row['urutan'] . '</td>';
-            echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
+            case 'kategori_organ':
+                echo '<td>' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
+                echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
+                echo '<td>' . $row['urutan'] . '</td>';
+                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
 
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
+                echo '<td>';
+                echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
+                echo '<button class="btn btn-sm btn-danger" 
                 onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
+                echo '</td>';
+                break;
 
-        case 'penyakit':
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['kategori_nama'] ?? '') . '</td>';
-            echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-            echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
-            echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
+            case 'penyakit':
+                echo '<td>' . $row['id'] . '</td>';
+                echo '<td>' . htmlspecialchars($row['kategori_nama'] ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
+                echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
+                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
 
-            echo '<td>';
-            echo '<button class="btn btn-sm btn-warning me-2" 
+                echo '<td>';
+                echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
                 <i class="fas fa-edit"></i>
             </button>';
-            echo '<button class="btn btn-sm btn-danger" 
+                echo '<button class="btn btn-sm btn-danger" 
                 onclick="deleteData(' . $row['id'] . ', null, \'' . htmlspecialchars($row['nama']) . '\')">
                 <i class="fas fa-trash"></i>
             </button>';
-            echo '</td>';
-            break;
+                echo '</td>';
+                break;
+        }
+
+        echo '</tr>';
     }
 
-    echo '</tr>';
-}
+    // Function to render forms
+    function renderForm($table, $data = null, $categories = [], $tempats = [])
+    {
+        $isEdit = $data !== null;
 
-// Function to render forms
-function renderForm($table, $data = null, $categories = [], $tempats = [])
-{
-    $isEdit = $data !== null;
-
-    switch ($table) {
-        case 'jadwal_praktek':
-            echo '
+        switch ($table) {
+            case 'jadwal_praktek':
+                echo '
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -920,18 +1163,18 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
                 });
             </script>
             ';
-            break;
+                break;
 
-        case 'Organisasi':
-            echo '<div class="mb-3">
+            case 'Organisasi':
+                echo '<div class="mb-3">
                 <label class="form-label">Nama Organisasi</label>
                 <input type="text" class="form-control" name="nama_organisasi" value="' . ($isEdit ? htmlspecialchars($data['nama_organisasi']) : '') . '" required>
             </div>';
 
-            break;
+                break;
 
-        case 'kategori_organ':
-            echo '<div class="row">
+            case 'kategori_organ':
+                echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Nama Kategori</label>
@@ -960,20 +1203,20 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
                 <label class="form-label">Deskripsi</label>
                 <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
             </div>';
-            break;
+                break;
 
-        case 'penyakit':
-            echo '<div class="row">
+            case 'penyakit':
+                echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Kategori Organ</label>
                         <select class="form-select" name="kategori_id" required>';
-            echo '<option value="">Pilih Kategori</option>';
-            foreach ($categories as $category) {
-                $selected = ($isEdit && $data['kategori_id'] == $category['id']) ? 'selected' : '';
-                echo '<option value="' . $category['id'] . '" ' . $selected . '>' . htmlspecialchars($category['nama']) . '</option>';
-            }
-            echo '</select>
+                echo '<option value="">Pilih Kategori</option>';
+                foreach ($categories as $category) {
+                    $selected = ($isEdit && $data['kategori_id'] == $category['id']) ? 'selected' : '';
+                    echo '<option value="' . $category['id'] . '" ' . $selected . '>' . htmlspecialchars($category['nama']) . '</option>';
+                }
+                echo '</select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Penyakit</label>
@@ -1020,10 +1263,11 @@ function renderForm($table, $data = null, $categories = [], $tempats = [])
                 <label class="form-label">Cara Mengurangi</label>
                 <textarea class="form-control" name="cara_mengurangi" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mengurangi']) : '') . '</textarea>
             </div>';
-            break;
+                break;
+        }
     }
-}
-?>
+    ?>
 
 </body>
+
 </html>
