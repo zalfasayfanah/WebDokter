@@ -11,10 +11,7 @@ $stmt_kategori->execute();
 $kategori_organ = $stmt_kategori->fetchAll(PDO::FETCH_ASSOC);
 
 // Ambil data dokter
-$query_dokter = "SELECT * FROM dokter WHERE id = 1";
-$stmt_dokter = $db->prepare($query_dokter);
-$stmt_dokter->execute();
-$dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>

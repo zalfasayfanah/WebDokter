@@ -454,9 +454,9 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         .table-jadwal-praktek th:nth-child(2),
         /* Alamat */
         .table-jadwal-praktek td:nth-child(2) {
-            width: 200px;
-            min-width: 200px;
-            max-width: 200px;
+            width: 230px;
+            min-width: 230px;
+            max-width: 230px;
             font-size: 0.85rem;
             line-height: 1.4;
             word-wrap: break-word;
@@ -466,8 +466,8 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         .table-jadwal-praktek th:nth-child(3),
         /* No Telp */
         .table-jadwal-praktek td:nth-child(3) {
-            width: 120px;
-            min-width: 120px;
+            width: 140px;
+            min-width: 140px;
         }
 
         .table-jadwal-praktek th:nth-child(4),
@@ -480,8 +480,8 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         .table-jadwal-praktek th:nth-child(5),
         /* Jam - DIPERLEBAR */
         .table-jadwal-praktek td:nth-child(5) {
-            width: 180px;
-            min-width: 180px;
+            width: 120px;
+            min-width: 120px;
             white-space: nowrap;
         }
 

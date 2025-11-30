@@ -27,10 +27,7 @@ $stmt_all_kategori->execute();
 $all_kategori = $stmt_all_kategori->fetchAll(PDO::FETCH_ASSOC);
 
 // Ambil data dokter
-$query_dokter = "SELECT * FROM dokter WHERE id = 1";
-$stmt_dokter = $db->prepare($query_dokter);
-$stmt_dokter->execute();
-$dokter = $stmt_dokter->fetch(PDO::FETCH_ASSOC);
+
 
 // Icon untuk setiap kategori
 $category_icons = [
