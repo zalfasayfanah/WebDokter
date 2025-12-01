@@ -238,7 +238,7 @@ $stmt->execute();
                 <img src="../assets/images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama']); ?>">
                 <h3><?php echo htmlspecialchars($row['nama']); ?></h3>
                 <p><?php echo htmlspecialchars($row['deskripsi']); ?></p>
-                <a href="/WebDokter/kategoriPenyakit/penyakit.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
+                <a href="/WebDokter/kategoriPenyakit/penyakit_kategori.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
             </div>
         <?php } ?>
     </section>

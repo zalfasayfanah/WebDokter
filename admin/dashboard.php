@@ -137,9 +137,16 @@ function handleEdit($db, $table, $data)
             $stmt->execute([$data['nama_organisasi'], $data['id']]);
             break;
 
-        case 'kategori_organ':
-            $stmt = $db->prepare("UPDATE kategori_organ SET nama=?, deskripsi=?, warna=?, urutan=?, status=? WHERE id=?");
-            $stmt->execute([$data['nama'], $data['deskripsi'], $data['warna'], $data['urutan'], $data['status'], $data['id']]);
+        case 'kategori_penyakit':
+            $stmt = $db->prepare("UPDATE kategori_organ_home SET nama=?, deskripsi=?, gambar=?, warna=?, status=? WHERE id=?");
+            $stmt->execute([
+                $data['nama'],
+                $data['deskripsi'],
+                $gambar,
+                $data['warna'],
+                $data['status'],
+                $data['id']
+            ]);
             break;
 
         case 'penyakit':
@@ -197,13 +204,13 @@ function handleAdd($db, $table, $data)
             $stmt->execute([$data['nama_organisasi']]);
             break;
 
-        case 'kategori_organ':
-            $stmt = $db->prepare("INSERT INTO kategori_organ (nama, deskripsi, warna, urutan, status) VALUES (?, ?, ?, ?, ?)");
+        case 'kategori_penyakit':
+            $stmt = $db->prepare("INSERT INTO kategori_organ_home (nama, deskripsi, gambar, warna, status) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['nama'],
                 $data['deskripsi'] ?? '',
+                $gambar,
                 $data['warna'] ?? '#3b82f6',
-                $data['urutan'] ?? 0,
                 $data['status'] ?? 'aktif'
             ]);
             break;
@@ -258,12 +265,24 @@ function getData($db, $table)
             $stmt = $db->prepare("SELECT * FROM organisasi ORDER BY nama_organisasi");
             break;
 
-        case 'kategori_organ':
-            $stmt = $db->prepare("SELECT * FROM kategori_organ ORDER BY urutan, nama");
+        case 'kategori_penyakit':
+            $stmt = $db->prepare("SELECT * FROM kategori_organ_home ORDER BY id");
             break;
 
         case 'penyakit':
-            $stmt = $db->prepare("SELECT p.*, k.nama as kategori_nama FROM penyakit p LEFT JOIN kategori_organ k ON p.kategori_id = k.id ORDER BY k.nama, p.nama");
+            // ============================================
+            // PERUBAHAN: Join dengan kategori_organ_home, bukan kategori_organ
+            // ============================================
+            $stmt = $db->prepare("
+                SELECT p.*, 
+                       ko.nama as kategori_organ_nama,
+                       koh.nama as kategori_penyakit_nama,
+                       koh.id as kategori_penyakit_id
+                FROM penyakit p 
+                LEFT JOIN kategori_organ ko ON p.kategori_id = ko.id
+                LEFT JOIN kategori_organ_home koh ON ko.kategori_home_id = koh.id
+                ORDER BY koh.nama, p.nama
+            ");
             break;
 
         default:
@@ -281,9 +300,17 @@ $tempatsStmt = $db->prepare("SELECT id, nama_tempat, alamat FROM tempat_praktek 
 $tempatsStmt->execute();
 $tempats = $tempatsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ ORDER BY nama");
+// ============================================
+// PERUBAHAN: Ganti dari kategori_organ ke kategori_organ_home
+// ============================================
+$categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ_home WHERE status='aktif' ORDER BY nama");
 $categoriesStmt->execute();
 $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Ambil juga kategori organ untuk keperluan mapping
+$kategoriOrganStmt = $db->prepare("SELECT id, nama, kategori_home_id FROM kategori_organ ORDER BY nama");
+$kategoriOrganStmt->execute();
+$kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -546,8 +573,8 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <a href="?table=Organisasi" class="nav-link <?= $currentTable == 'Organisasi' ? 'active' : '' ?>">
                         <i class="fas fa-star me-2"></i> Organisasi
                     </a>
-                    <a href="?table=kategori_organ" class="nav-link <?= $currentTable == 'kategori_organ' ? 'active' : '' ?>">
-                        <i class="fas fa-list me-2"></i> Kategori Organ
+                    <a href="?table=kategori_penyakit" class="nav-link <?= $currentTable == 'kategori_penyakit' ? 'active' : '' ?>">
+                        <i class="fas fa-list me-2"></i> Kategori Penyakit
                     </a>
                     <a href="?table=penyakit" class="nav-link <?= $currentTable == 'penyakit' ? 'active' : '' ?>">
                         <i class="fas fa-virus me-2"></i> Penyakit
@@ -745,83 +772,125 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     `;
             <?php endif; ?>
 
-            <?php if ($currentTable == 'kategori_organ'): ?>
+            <?php if ($currentTable == 'kategori_penyakit'): ?>
                 html = `
-            <div class="mb-3">
-                <label class="form-label">Nama Kategori</label>
-                <input type="text" class="form-control" name="nama" value="${data.nama}" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="3">${data.deskripsi || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Warna</label>
-                <input type="color" class="form-control form-control-color" name="warna" value="${data.warna || '#3b82f6'}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Urutan</label>
-                <input type="number" class="form-control" name="urutan" value="${data.urutan}" min="0">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Status</label>
-                <select class="form-select" name="status">
-                    <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
-                    <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
-                </select>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Kategori Penyakit</label>
+                        <input type="text" class="form-control" name="nama" value="${data.nama}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Warna</label>
+                        <input type="color" class="form-control form-control-color" name="warna" value="${data.warna || '#3b82f6'}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
+                            <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea class="form-control" name="deskripsi" rows="5">${data.deskripsi || ''}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gambar Icon</label><br>
+                        ${data.gambar ? `<img src="assets/images/${data.gambar}" style="max-width:100px;margin-bottom:10px;border-radius:8px;">` : ''}
+                        <input type="file" class="form-control" name="gambar">
+                        <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
+                    </div>
+                </div>
             </div>
         `;
             <?php endif; ?>
 
             <?php if ($currentTable == 'penyakit'): ?>
+                // Ambil data kategori organ dari PHP
+                const kategoriOrgans = <?php echo json_encode($kategoriOrgans); ?>;
+                const categories = <?php echo json_encode($categories); ?>;
+
+                // Buat grouped select
+                let organOptions = '<option value="">-- Pilih Kategori Organ --</option>';
+
+                const grouped = {};
+                kategoriOrgans.forEach(ko => {
+                    const homeId = ko.kategori_home_id || 0;
+                    if (!grouped[homeId]) grouped[homeId] = [];
+                    grouped[homeId].push(ko);
+                });
+
+                categories.forEach(cat => {
+                    if (grouped[cat.id]) {
+                        organOptions += `<optgroup label="${cat.nama}">`;
+                        grouped[cat.id].forEach(ko => {
+                            const selected = (data.kategori_id == ko.id) ? 'selected' : '';
+                            organOptions += `<option value="${ko.id}" ${selected}>${ko.nama}</option>`;
+                        });
+                        organOptions += '</optgroup>';
+                    }
+                });
+
                 html = `
-            <div class="mb-3">
-                <label class="form-label">Kategori Organ</label>
-                <select class="form-select" name="kategori_id" required>
-                    <?php foreach ($categories as $category): ?>
-                        <option value="<?= $category['id'] ?>" ${data.kategori_id == <?= $category['id'] ?> ? 'selected' : ''}>
-                            <?= htmlspecialchars($category['nama']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Kategori Organ</label>
+                        <select class="form-select" name="kategori_id" required>
+                            ${organOptions}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Penyakit</label>
+                        <input type="text" class="form-control" name="nama" value="${data.nama}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
+                            <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi Singkat</label>
+                        <textarea class="form-control" name="deskripsi_singkat" rows="3">${data.deskripsi_singkat || ''}</textarea>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Nama Penyakit</label>
-                <input type="text" class="form-control" name="nama" value="${data.nama}" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi Singkat</label>
-                <textarea class="form-control" name="deskripsi_singkat" rows="2">${data.deskripsi_singkat || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Penyebab Utama</label>
-                <textarea class="form-control" name="penyebab_utama" rows="3">${data.penyebab_utama || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Gejala</label>
-                <textarea class="form-control" name="gejala" rows="3">${data.gejala || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Bahaya</label>
-                <textarea class="form-control" name="bahaya" rows="3">${data.bahaya || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Cara Mencegah</label>
-                <textarea class="form-control" name="cara_mencegah" rows="3">${data.cara_mencegah || ''}</textarea>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Penyebab Utama</label>
+                        <textarea class="form-control" name="penyebab_utama" rows="4">${data.penyebab_utama || ''}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gejala</label>
+                        <textarea class="form-control" name="gejala" rows="4">${data.gejala || ''}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Bahaya</label>
+                        <textarea class="form-control" name="bahaya" rows="4">${data.bahaya || ''}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cara Mencegah</label>
+                        <textarea class="form-control" name="cara_mencegah" rows="4">${data.cara_mencegah || ''}</textarea>
+                    </div>
+                </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Cara Mengurangi</label>
-                <textarea class="form-control" name="cara_mengurangi" rows="3">${data.cara_mengurangi || ''}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Status</label>
-                <select class="form-select" name="status">
-                    <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
-                    <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
-                </select>
+                <textarea class="form-control" name="cara_mengurangi" rows="4">${data.cara_mengurangi || ''}</textarea>
             </div>
         `;
             <?php endif; ?>
+
 
             return html;
         }
@@ -933,11 +1002,29 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'Organisasi':
                 echo '<tr><th>ID</th><th>Nama Organisasi</th><th>Aksi</th></tr>';
                 break;
-            case 'kategori_organ':
-                echo '<tr><th>ID</th><th>Nama</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr>';
+            case 'kategori_penyakit':
+                echo '<tr>
+                <th>ID</th>
+                <th>Nama Kategori</th>
+                <th>Deskripsi</th>
+                <th>Gambar</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>';
                 break;
+
             case 'penyakit':
-                echo '<tr><th>ID</th><th>Kategori</th><th>Nama</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr>';
+                // ============================================
+                // PERUBAHAN: Ganti "Kategori" jadi "Kategori Penyakit"
+                // ============================================
+                echo '<tr>
+                <th>ID</th>
+                <th>Kategori Penyakit</th>
+                <th>Nama</th>
+                <th>Deskripsi</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>';
                 break;
         }
     }
@@ -1052,11 +1139,19 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '</td>';
                 break;
 
-            case 'kategori_organ':
+            case 'kategori_penyakit':
                 echo '<td>' . $row['id'] . '</td>';
                 echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
                 echo '<td>' . htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 50)) . '...</td>';
-                echo '<td>' . $row['urutan'] . '</td>';
+
+                echo '<td>';
+                if (!empty($row['gambar'])) {
+                    echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">';
+                } else {
+                    echo '-';
+                }
+                echo '</td>';
+
                 echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
 
                 echo '<td>';
@@ -1073,7 +1168,18 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 
             case 'penyakit':
                 echo '<td>' . $row['id'] . '</td>';
-                echo '<td>' . htmlspecialchars($row['kategori_nama'] ?? '') . '</td>';
+
+                // ============================================
+                // PERUBAHAN: Tampilkan kategori_penyakit_nama
+                // ============================================
+                echo '<td>';
+                if (!empty($row['kategori_penyakit_nama'])) {
+                    echo '<span class="badge bg-primary">' . htmlspecialchars($row['kategori_penyakit_nama']) . '</span>';
+                } else {
+                    echo '<span class="badge bg-secondary">Tidak Ada</span>';
+                }
+                echo '</td>';
+
                 echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
                 echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
                 echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
@@ -1097,6 +1203,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     // Function to render forms
     function renderForm($table, $data = null, $categories = [], $tempats = [])
     {
+        global $db, $kategoriOrgans;
         $isEdit = $data !== null;
 
         switch ($table) {
@@ -1173,19 +1280,13 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 
                 break;
 
-            case 'kategori_organ':
+            case 'kategori_penyakit':
                 echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label class="form-label">Nama Kategori</label>
-                        <input type="text" class="form-control" name="nama" value="' . ($isEdit ? htmlspecialchars($data['nama']) : '') . '" required>
+                        <label class="form-label">Nama Kategori Penyakit</label>
+                        <input type="text" class="form-control" name="nama" value="' . ($isEdit ? htmlspecialchars($data['nama']) : '') . '" placeholder="Contoh: Penyakit Saluran Cerna" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Urutan</label>
-                        <input type="number" class="form-control" name="urutan" value="' . ($isEdit ? $data['urutan'] : '0') . '" min="0">
-                    </div>
-                </div>
-                <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Warna</label>
                         <input type="color" class="form-control form-control-color" name="warna" value="' . ($isEdit ? $data['warna'] : '#3b82f6') . '">
@@ -1198,10 +1299,20 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                         </select>
                     </div>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Deskripsi</label>
-                <textarea class="form-control" name="deskripsi" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea class="form-control" name="deskripsi" rows="5" placeholder="Deskripsi singkat kategori penyakit">' . ($isEdit ? htmlspecialchars($data['deskripsi']) : '') . '</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gambar Icon</label>';
+                if ($isEdit && !empty($data['gambar'])) {
+                    echo '<br><img src="assets/images/' . htmlspecialchars($data['gambar']) . '" style="max-width:100px;margin-bottom:10px;border-radius:8px;">';
+                }
+                echo '      <input type="file" class="form-control" name="gambar"' . ($isEdit ? '' : ' required') . '>
+                        <input type="hidden" name="gambar_lama" value="' . ($isEdit ? htmlspecialchars($data['gambar'] ?? '') : '') . '">
+                    </div>
+                </div>
             </div>';
                 break;
 
@@ -1211,12 +1322,31 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="mb-3">
                         <label class="form-label">Kategori Organ</label>
                         <select class="form-select" name="kategori_id" required>';
-                echo '<option value="">Pilih Kategori</option>';
-                foreach ($categories as $category) {
-                    $selected = ($isEdit && $data['kategori_id'] == $category['id']) ? 'selected' : '';
-                    echo '<option value="' . $category['id'] . '" ' . $selected . '>' . htmlspecialchars($category['nama']) . '</option>';
+                echo '<option value="">-- Pilih Kategori Organ --</option>';
+
+                // Kelompokkan berdasarkan kategori home
+                $grouped = [];
+                foreach ($kategoriOrgans as $ko) {
+                    $homeId = $ko['kategori_home_id'] ?? 0;
+                    if (!isset($grouped[$homeId])) {
+                        $grouped[$homeId] = [];
+                    }
+                    $grouped[$homeId][] = $ko;
                 }
+
+                foreach ($categories as $cat) {
+                    if (isset($grouped[$cat['id']])) {
+                        echo '<optgroup label="' . htmlspecialchars($cat['nama']) . '">';
+                        foreach ($grouped[$cat['id']] as $ko) {
+                            $selected = ($isEdit && $data['kategori_id'] == $ko['id']) ? 'selected' : '';
+                            echo '<option value="' . $ko['id'] . '" ' . $selected . '>' . htmlspecialchars($ko['nama']) . '</option>';
+                        }
+                        echo '</optgroup>';
+                    }
+                }
+
                 echo '</select>
+                        <small class="text-muted">Pilih organ yang sesuai (Mulut, Lambung, dll)</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Penyakit</label>

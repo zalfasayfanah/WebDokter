@@ -6,9 +6,16 @@ $db = $database->getConnection();
 
 $penyakit_id = isset($_GET['id']) ? (int)$_GET['id'] : 1;
 
-// Ambil data penyakit dengan kategori
-$query_penyakit = "SELECT p.*, k.nama as kategori_nama FROM penyakit p 
+// =================================================================
+// AMBIL DATA PENYAKIT DENGAN RELASI KE KATEGORI HOME
+// =================================================================
+$query_penyakit = "SELECT p.*, 
+                          k.nama as kategori_nama, 
+                          k.kategori_home_id,
+                          kh.nama as kategori_home_nama
+                   FROM penyakit p 
                    LEFT JOIN kategori_organ k ON p.kategori_id = k.id 
+                   LEFT JOIN kategori_organ_home kh ON k.kategori_home_id = kh.id
                    WHERE p.id = :id";
 $stmt_penyakit = $db->prepare($query_penyakit);
 $stmt_penyakit->bindParam(':id', $penyakit_id);
@@ -16,26 +23,9 @@ $stmt_penyakit->execute();
 $penyakit = $stmt_penyakit->fetch(PDO::FETCH_ASSOC);
 
 if (!$penyakit) {
-    header('Location: penyakit.php');
+    header('Location: ../Penyakit/penyakit_home.php');
     exit;
 }
-
-// Ambil semua kategori untuk sidebar
-$query_all_kategori = "SELECT * FROM kategori_organ WHERE status = 'aktif' ORDER BY urutan";
-$stmt_all_kategori = $db->prepare($query_all_kategori);
-$stmt_all_kategori->execute();
-$all_kategori = $stmt_all_kategori->fetchAll(PDO::FETCH_ASSOC);
-
-// Ambil data dokter
-
-
-// Icon untuk setiap kategori
-$category_icons = [
-    1 => '<img src="../assets/images/mulut.png" alt="Mulut & Kerongkongan" style="width: 100px; height: 100px;">', // Mulut & Kerongkongan
-    2 => '<img src="../assets/images/lambung.png" alt="Lambung" style="width: 120px; height: 120px;">', // Lambung
-    3 => '<img src="../assets/images/usus.png" alt="Usus Halus & Usus Besar" style="width: 120px; height: 120px;">', // Usus Halus & Usus Besar
-    4 => '<img src="../assets/images/hati.png" alt="Hati, Empedu & Pankreas" style="width: 90px; height: 90px;">', // Hati, Empedu & Pankreas
-];
 ?>
 
 <!DOCTYPE html>
@@ -43,92 +33,74 @@ $category_icons = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $penyakit['nama']; ?> - <?php echo $dokter['nama']; ?></title>
+    <title><?php echo htmlspecialchars($penyakit['nama']); ?></title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         .main-container {
-            display: flex;
             min-height: calc(100vh - 80px);
-        }
-        
-        .sidebar {
-            width: 300px;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 5rem 0 2rem 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-        }
-        
-        .sidebar-item {
-            padding: 1rem 2rem;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-        
-        .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-left-color: #fbbf24;
-        }
-        
-        .sidebar-item.active {
-            background: rgba(251, 191, 36, 0.2);
-            border-left-color: #fbbf24;
-            color: #fbbf24;
-        }
-        
-        .sidebar-item.active::before {
-            content: "●";
-            margin-right: 0.5rem;
-            color: #fbbf24;
+            background: #f5f7fa;
         }
         
         .content-area {
-            flex: 1;
-            margin-left: 300px;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 2rem;
-            background: #f5f7fa;
         }
         
         .back-btn {
             background: #6b7280;
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             border-radius: 25px;
             cursor: pointer;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .back-btn:hover {
             background: #4b5563;
+            transform: translateX(-5px);
         }
         
         .disease-detail {
             background: white;
             border-radius: 15px;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
         }
         
         .disease-title {
-            font-size: 2rem;
+            font-size: 2.2rem;
             color: #1e3a8a;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             font-weight: bold;
+        }
+        
+        .disease-category {
+            display: inline-block;
+            background: #fbbf24;
+            color: #1e3a8a;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
         }
         
         .disease-description {
             font-size: 1.1rem;
             color: #4b5563;
             margin-bottom: 2rem;
-            line-height: 1.6;
+            line-height: 1.7;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
         }
         
         .disease-section {
@@ -138,18 +110,16 @@ $category_icons = [
         .disease-section h3 {
             color: #1e3a8a;
             margin-bottom: 1rem;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
-        .disease-section ul {
-            padding-left: 1.5rem;
-            line-height: 1.8;
-            color: #4b5563;
-        }
-        
-        .disease-section li {
-            margin-bottom: 0.5rem;
+        .disease-section h3:before {
+            content: "📌";
+            font-size: 1.2rem;
         }
         
         .section-highlight {
@@ -157,19 +127,17 @@ $category_icons = [
             padding: 1.5rem;
             border-radius: 10px;
             border-left: 4px solid #fbbf24;
+            line-height: 1.8;
+            color: #374151;
         }
         
         @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-            
-            .content-area {
-                margin-left: 0;
-            }
-            
             .disease-title {
-                font-size: 1.5rem;
+                font-size: 1.6rem;
+            }
+            
+            .disease-detail {
+                padding: 1.5rem;
             }
         }
     </style>
@@ -178,22 +146,19 @@ $category_icons = [
     <?php include 'includes/header.php'; ?>
     
     <div class="main-container">
-        <div class="sidebar">
-            <?php foreach ($all_kategori as $kat): ?>
-                <div class="sidebar-item <?php echo $kat['id'] == $penyakit['kategori_id'] ? 'active' : ''; ?>" 
-                     onclick="window.location.href='penyakit_kategori.php?id=<?php echo $kat['id']; ?>'">
-                    <?php echo $kat['nama']; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        
         <div class="content-area">
-            <button class="back-btn" onclick="window.location.href='penyakit_kategori.php?id=<?php echo $penyakit['kategori_id']; ?>'">
-                ← Kembali
+            <!-- =================================================================
+                 PERUBAHAN: Tombol kembali ke kategori home, bukan kategori organ
+            ================================================================= -->
+            <button class="back-btn" onclick="window.location.href='penyakit_kategori.php?id=<?php echo $penyakit['kategori_home_id']; ?>'">
+                ← Kembali ke <?php echo htmlspecialchars($penyakit['kategori_home_nama']); ?>
             </button>
             
             <div class="disease-detail">
                 <h1 class="disease-title"><?php echo htmlspecialchars($penyakit['nama']); ?></h1>
+                <span class="disease-category">
+                    📍 <?php echo htmlspecialchars($penyakit['kategori_nama']); ?>
+                </span>
                 
                 <div class="disease-description">
                     <?php echo nl2br(htmlspecialchars($penyakit['deskripsi_singkat'])); ?>
@@ -201,7 +166,7 @@ $category_icons = [
                 
                 <?php if ($penyakit['penyebab_utama']): ?>
                 <div class="disease-section">
-                    <h3>Penyebab utama:</h3>
+                    <h3>Penyebab Utama</h3>
                     <div class="section-highlight">
                         <?php echo nl2br(htmlspecialchars($penyakit['penyebab_utama'])); ?>
                     </div>
@@ -210,7 +175,7 @@ $category_icons = [
                 
                 <?php if ($penyakit['gejala']): ?>
                 <div class="disease-section">
-                    <h3>Gejala:</h3>
+                    <h3>Gejala</h3>
                     <div class="section-highlight">
                         <?php echo nl2br(htmlspecialchars($penyakit['gejala'])); ?>
                     </div>
@@ -219,7 +184,7 @@ $category_icons = [
                 
                 <?php if ($penyakit['bahaya']): ?>
                 <div class="disease-section">
-                    <h3>Bahaya jika dibiarkan:</h3>
+                    <h3>Bahaya Jika Dibiarkan</h3>
                     <div class="section-highlight">
                         <?php echo nl2br(htmlspecialchars($penyakit['bahaya'])); ?>
                     </div>
@@ -228,15 +193,15 @@ $category_icons = [
                 
                 <?php if ($penyakit['cara_mencegah'] || $penyakit['cara_mengurangi']): ?>
                 <div class="disease-section">
-                    <h3>Cara mencegah & mengurangi:</h3>
+                    <h3>Cara Mencegah & Mengurangi</h3>
                     <div class="section-highlight">
                         <?php if ($penyakit['cara_mencegah']): ?>
-                            <strong>Pencegahan:</strong><br>
+                            <strong>✅ Pencegahan:</strong><br>
                             <?php echo nl2br(htmlspecialchars($penyakit['cara_mencegah'])); ?><br><br>
                         <?php endif; ?>
                         
                         <?php if ($penyakit['cara_mengurangi']): ?>
-                            <strong>Pengobatan:</strong><br>
+                            <strong>💊 Pengobatan:</strong><br>
                             <?php echo nl2br(htmlspecialchars($penyakit['cara_mengurangi'])); ?>
                         <?php endif; ?>
                     </div>
@@ -245,7 +210,5 @@ $category_icons = [
             </div>
         </div>
     </div>
-    
-   
 </body>
 </html>

@@ -4,108 +4,103 @@ require_once '../config/Koneksi.php';
 $database = new Database();
 $db = $database->getConnection();
 
-$kategori_id = isset($_GET['id']) ? (int) $_GET['id'] : 1;
+// =================================================================
+// Ambil kategori_home_id dari URL
+// =================================================================
+$kategori_home_id = isset($_GET['id']) ? (int) $_GET['id'] : 1;
 
-// Ambil data kategori
-$query_kategori = "SELECT * FROM kategori_organ WHERE id = :id";
-$stmt_kategori = $db->prepare($query_kategori);
-$stmt_kategori->bindParam(':id', $kategori_id);
-$stmt_kategori->execute();
-$kategori = $stmt_kategori->fetch(PDO::FETCH_ASSOC);
+// =================================================================
+// AMBIL DATA KATEGORI HOME (Penyakit Saluran Cerna, dll)
+// =================================================================
+$query_kategori_home = "SELECT * FROM kategori_organ_home WHERE id = :id";
+$stmt_kategori_home = $db->prepare($query_kategori_home);
+$stmt_kategori_home->bindParam(':id', $kategori_home_id);
+$stmt_kategori_home->execute();
+$kategori_home = $stmt_kategori_home->fetch(PDO::FETCH_ASSOC);
 
-if (!$kategori) {
-    header('Location: penyakit.php');
+if (!$kategori_home) {
+    header('Location: ../Penyakit/penyakit_home.php');
     exit;
 }
 
-// Ambil semua kategori untuk sidebar
-$query_all_kategori = "SELECT * FROM kategori_organ WHERE status = 'aktif' ORDER BY urutan";
-$stmt_all_kategori = $db->prepare($query_all_kategori);
-$stmt_all_kategori->execute();
-$all_kategori = $stmt_all_kategori->fetchAll(PDO::FETCH_ASSOC);
-
-// Ambil penyakit berdasarkan kategori
-$query_penyakit = "SELECT * FROM penyakit WHERE kategori_id = :kategori_id AND status = 'aktif' ORDER BY nama";
+// =================================================================
+// AMBIL SEMUA PENYAKIT LANGSUNG TANPA PENGELOMPOKAN ORGAN
+// Hanya diurutkan berdasarkan nama penyakit (alfabetis)
+// =================================================================
+$query_penyakit = "SELECT p.*, k.nama as kategori_organ_nama 
+                   FROM penyakit p
+                   INNER JOIN kategori_organ k ON p.kategori_id = k.id
+                   WHERE k.kategori_home_id = :kategori_home_id 
+                   AND p.status = 'aktif' 
+                   ORDER BY p.nama ASC";
 $stmt_penyakit = $db->prepare($query_penyakit);
-$stmt_penyakit->bindParam(':kategori_id', $kategori_id);
+$stmt_penyakit->bindParam(':kategori_home_id', $kategori_home_id);
 $stmt_penyakit->execute();
-$penyakit_list = $stmt_penyakit->fetchAll(PDO::FETCH_ASSOC);
+$semua_penyakit = $stmt_penyakit->fetchAll(PDO::FETCH_ASSOC);
 
-// Ambil data dokter
-
-
-// Icon untuk setiap kategori
-$category_icons = [
-    1 => '<img src="../assets/images/mulut.png" alt="Mulut & Kerongkongan" style="width: 100px; height: 100px;">', // Mulut & Kerongkongan
-    2 => '<img src="../assets/images/lambung.png" alt="Lambung" style="width: 120px; height: 120px;">', // Lambung
-    3 => '<img src="../assets/images/usus.png" alt="Usus Halus & Usus Besar" style="width: 120px; height: 120px;">', // Usus Halus & Usus Besar
-    4 => '<img src="../assets/images/hati.png" alt="Hati, Empedu & Pankreas" style="width: 90px; height: 90px;">', // Hati, Empedu & Pankreas
+// Icon untuk kategori home
+$home_category_icons = [
+    1 => '<img src="../assets/images/cutlery 1.png" alt="Saluran Cerna" style="width: 100px; height: 100px;">',
+    2 => '<img src="../assets/images/kidney 1.png" alt="Ginjal" style="width: 100px; height: 100px;">',
+    3 => '<img src="../assets/images/lung 1.png" alt="Pernapasan" style="width: 100px; height: 100px;">',
+    4 => '<img src="../assets/images/backteri1.png" alt="Infeksi" style="width: 100px; height: 100px;">',
 ];
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $kategori['nama']; ?> - <?php echo $dokter['nama']; ?></title>
+    <title><?php echo htmlspecialchars($kategori_home['nama']); ?></title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
+        /* =================================================================
+           STYLE BARU: Full width, no sidebar, no grouping
+        ================================================================= */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
         .main-container {
-            display: flex;
             min-height: calc(100vh - 80px);
-            margin-top: 0;
-        }
-
-        .sidebar {
-            width: 300px;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 5rem 0 2rem 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .sidebar-item {
-            padding: 1rem 2rem;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-left-color: #fbbf24;
-        }
-
-        .sidebar-item.active {
-            background: rgba(251, 191, 36, 0.2);
-            border-left-color: #fbbf24;
-            color: #fbbf24;
-        }
-
-        .sidebar-item.active::before {
-            content: "●";
-            margin-right: 0.5rem;
-            color: #fbbf24;
+            background: #f5f7fa;
         }
 
         .content-area {
-            flex: 1;
-            margin-left: 300px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 2rem;
-            background: #f5f7fa;
-            min-height: calc(100vh - 80px);
+        }
+
+        .back-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .back-btn:hover {
+            background: #4b5563;
+            transform: translateX(-5px);
         }
 
         .page-header {
             background: white;
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 15px;
             margin-bottom: 2rem;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
@@ -113,77 +108,147 @@ $category_icons = [
         }
 
         .category-icon {
-    width: 120px;
-    height: 120px;
-    background: linear-gradient(135deg, #3b82f6, #1e3a8a);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    overflow: hidden;
-    border: 4px solid #fbbf24;
-}
-
-.category-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;  /* gambar pas ke lingkaran, tidak terpotong */
-    padding: 10px;        /* opsional, biar ada jarak sedikit */
-}
-
-
-
-        .category-title {
-            font-size: 2rem;
-            color: #1e3a8a;
-            font-weight: bold;
-            margin-bottom: 1rem;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            overflow: hidden;
+            border: 4px solid #fbbf24;
         }
 
-        .disease-list {
+        .category-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 10px;
+        }
+
+        .category-title {
+            font-size: 2.5rem;
+            color: #1e3a8a;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-description {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* Search Box */
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            border-radius: 25px;
+            border: 2px solid #e5e7eb;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+        }
+
+        /* =================================================================
+           GRID PENYAKIT TANPA PENGELOMPOKAN
+        ================================================================= */
+        .disease-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
             margin-top: 2rem;
         }
 
-        .disease-btn {
+        .disease-card {
             background: white;
-            border: none;
+            border: 2px solid #e5e7eb;
             padding: 1.5rem;
-            border-radius: 15px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #1e3a8a;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
             text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        .disease-btn:hover {
+        .disease-card:before {
+            content: "📋";
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .disease-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            background: #fbbf24;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            border-color: #fbbf24;
+        }
+
+        .disease-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            transition: color 0.3s;
+        }
+
+        .disease-card:hover .disease-name {
             color: white;
         }
 
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            padding: 4rem 2rem;
+            font-size: 1.2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-state:before {
+            content: "📭";
+            display: block;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Counter */
+        .disease-counter {
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
-            .sidebar {
-                display: none;
+            .category-title {
+                font-size: 1.8rem;
+            }
+
+            .disease-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
             }
 
             .content-area {
-                margin-left: 0;
-            }
-
-            .category-title {
-                font-size: 1.5rem;
-            }
-
-            .disease-list {
-                grid-template-columns: 1fr;
+                padding: 1rem;
             }
         }
     </style>
@@ -193,41 +258,82 @@ $category_icons = [
     <?php include 'includes/header.php'; ?>
 
     <div class="main-container">
-        <div class="sidebar">
-            <?php foreach ($all_kategori as $kat): ?>
-                <div class="sidebar-item <?php echo $kat['id'] == $kategori_id ? 'active' : ''; ?>"
-                    onclick="window.location.href='penyakit_kategori.php?id=<?php echo $kat['id']; ?>'">
-                    <?php echo $kat['nama']; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-
         <div class="content-area">
+            <!-- Tombol Kembali -->
+            <button class="back-btn" onclick="window.location.href='../Penyakit/penyakit_home.php'">
+                ← Kembali ke Beranda
+            </button>
+
+            <!-- Header Kategori -->
             <div class="page-header">
                 <div class="category-icon">
-                    <?php echo $category_icons[$kategori_id] ?? '🏥'; ?>
+                    <?php echo $home_category_icons[$kategori_home_id] ?? '🏥'; ?>
                 </div>
-                <h1 class="category-title"><?php echo $kategori['nama']; ?></h1>
+                <h1 class="category-title"><?php echo htmlspecialchars($kategori_home['nama']); ?></h1>
+                <p class="category-description"><?php echo htmlspecialchars($kategori_home['deskripsi']); ?></p>
 
-                <div class="disease-list">
-                    <?php if (empty($penyakit_list)): ?>
-                        <div style="grid-column: 1 / -1; text-align: center; color: #6b7280; padding: 2rem;">
-                            <p>Belum ada data penyakit untuk kategori ini.</p>
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($penyakit_list as $penyakit): ?>
-                            <button class="disease-btn"
-                                onclick="window.location.href='penyakit_detail.php?id=<?php echo $penyakit['id']; ?>'">
-                                <?php echo htmlspecialchars($penyakit['nama']); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                <!-- Search Box -->
+                <div class="search-container">
+                    <input type="text" 
+                           class="search-box" 
+                           id="searchBox" 
+                           placeholder="🔍 Cari penyakit...">
                 </div>
+
+                <!-- Counter -->
+                <p class="disease-counter">
+                    Menampilkan <strong id="visibleCount"><?php echo count($semua_penyakit); ?></strong> dari 
+                    <strong><?php echo count($semua_penyakit); ?></strong> penyakit
+                </p>
             </div>
+
+            <!-- =================================================================
+                 TAMPILKAN SEMUA PENYAKIT LANGSUNG TANPA PENGELOMPOKAN
+            ================================================================= -->
+            <?php if (empty($semua_penyakit)): ?>
+                <div class="empty-state">
+                    <p>Belum ada data penyakit untuk kategori ini.</p>
+                </div>
+            <?php else: ?>
+                <div class="disease-grid" id="diseaseGrid">
+                    <?php foreach ($semua_penyakit as $penyakit): ?>
+                        <div class="disease-card" 
+                             data-name="<?php echo strtolower(htmlspecialchars($penyakit['nama'])); ?>"
+                             onclick="window.location.href='penyakit_detail.php?id=<?php echo $penyakit['id']; ?>'">
+                            <span class="disease-name"><?php echo htmlspecialchars($penyakit['nama']); ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
-  
-</body>
+    <script>
+        // =================================================================
+        // FITUR PENCARIAN REAL-TIME
+        // =================================================================
+        const searchBox = document.getElementById('searchBox');
+        const diseaseCards = document.querySelectorAll('.disease-card');
+        const visibleCount = document.getElementById('visibleCount');
+        const totalCount = diseaseCards.length;
 
+        searchBox.addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase().trim();
+            let visible = 0;
+
+            diseaseCards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                if (name.includes(searchValue)) {
+                    card.style.display = 'flex';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update counter
+            visibleCount.textContent = visible;
+        });
+    </script>
+</body>
 </html>
