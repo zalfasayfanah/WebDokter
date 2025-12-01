@@ -650,6 +650,64 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             border: 1px solid #ddd;
             padding: 8px;
         }
+           * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.cta-buttons {
+    display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 10px;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 15px 35px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cta-button.secondary {
+    background: linear-gradient(145deg, #1e3a8a, #3b82f6);
+    color: #ffffff;
+    border: none;
+    box-shadow: 
+        0 8px 15px rgba(30, 58, 138, 0.4),
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.cta-button.secondary:hover {
+    background: linear-gradient(145deg, #1e40af, #2563eb);
+    transform: translateY(-4px);
+    box-shadow: 
+        0 12px 25px rgba(37, 99, 235, 0.5),
+        0 8px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.cta-button.secondary:active {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 10px rgba(30, 58, 138, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.1),
+        inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
     </style>
 </head>
 
@@ -668,8 +726,14 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
                         Dengan berbagai pelatihan nasional maupun internasional, serta fellowship di bidang nutrisi, olahraga klinis, dan mutu layanan kesehatan, Dr. Arif Rahman berkomitmen memberikan layanan kesehatan yang komprehensif, personal, dan berstandar tinggi bagi masyarakat.
                     </p>
                     <div class="cta-buttons">
-                        <a href="#profile" class="cta-button secondary">Lihat Profil</a>
+                        <a href="#" class="cta-button secondary">Geriatri</a>
                     </div>
+                     <div class="cta-buttons">
+                        <a href="#" class="cta-button secondary">osteoarthritis</a>
+                    </div>
+                      <div class="cta-buttons">
+                        <a href="#" class="cta-button secondary">Diabetes</a>
+                    </div>            
                 </div>
                 <div class="hero-image">
                     <div class="doctor-photo">
@@ -688,14 +752,6 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
                         <div class="info-item">
                             <span>⏳</span>
                             <span>10+ Tahun Pengalaman</span>
-                        </div>
-                        <div class="info-item">
-                            <span>🏥 </span>
-                            <span>Praktik di: RS KUSUMA Ungaran & RS UNIMUS Semarang</span>
-                        </div>
-                        <div class="info-item">
-                            <span>📍</span>
-                            <span>Gmaps: dr. Arif Rahman Sp.PD, FINASIM, FINEM, AIFO-K, FISQua (Dokter Spesialis Penyakit Dalam & Dokter Stemcell) Kota Semarang</span>
                         </div>
                     </div>
                 </div>
