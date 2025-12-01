@@ -5,7 +5,7 @@ session_start();
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website3;
+    private $db_name = 'medical_website3'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
     private $username = 'root';
     private $password = '';
     public $conn;
