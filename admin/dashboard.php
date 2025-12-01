@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 session_start();
 
 // Database configuration
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website';
+    private $db_name = 'medical_website3'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
     private $username = 'root';
     private $password = '';
     public $conn;
@@ -14,6 +14,7 @@ class Database
     {
         $this->conn = null;
         try {
+            // PERBAIKAN: Menggunakan port 3307 sesuai dengan permintaan Anda
             $this->conn = new PDO(
                 "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
                 $this->username,
@@ -42,6 +43,28 @@ checkAdmin();
 // Database connection
 $database = new Database();
 $db = $database->getConnection();
+
+// --- FUNGSI HELPER BARU UNTUK PATH GAMBAR ---
+function getCleanedImagePath($filename) {
+    if (empty($filename)) return '';
+    // Menghapus 'assets/images/', '../assets/images/', dll. yang mungkin sudah tersimpan di database
+    $cleanedFilename = str_replace(['assets/images/', '../assets/images/', '/'], '', $filename);
+    // Mengembalikan path relatif dari admin.php ke folder gambar
+    return 'assets/images/' . htmlspecialchars($cleanedFilename);
+}
+// ---------------------------------------------
+
+
+// Ambil data kategori organ (masih diperlukan jika menu kategori_organ masih ada)
+$kategoriOrgansStmt = $db->prepare("SELECT id, nama, kategori_home_id FROM kategori_organ WHERE status='aktif' ORDER BY urutan, nama");
+$kategoriOrgansStmt->execute();
+$kategoriOrgans = $kategoriOrgansStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Ambil kategori penyakit utama dari kategori_organ_home
+$categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ_home WHERE status='aktif' ORDER BY nama");
+$categoriesStmt->execute();
+$categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Handle CRUD operations
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -80,9 +103,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 function handleEdit($db, $table, $data)
 {
-    $gambar = $_POST['gambar_lama'] ?? '';
+    $gambar = $data['gambar_lama'] ?? '';
 
     if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
+        // PERBAIKAN: Menggunakan __DIR__ yang benar
         $targetDir = __DIR__ . "/assets/images/";
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0777, true);
@@ -98,36 +122,31 @@ function handleEdit($db, $table, $data)
 
     switch ($table) {
         case 'jadwal_praktek':
-            // Validasi data tempat praktek
             if (empty($data['nama_tempat']) || empty($data['alamat']) || empty($data['telp']) || empty($data['gmaps_link'])) {
                 die("Harap lengkapi semua data tempat praktek sebelum menyimpan.");
             }
 
-            // Ambil tempat_id dari form
             $tempat_id = $data['tempat_id'] ?? null;
 
             if (empty($tempat_id)) {
                 die("ID tempat praktek tidak ditemukan.");
             }
 
-            // UPDATE data tempat praktek yang sudah ada
             $stmt = $db->prepare("UPDATE tempat_praktek SET nama_tempat=?, alamat=?, telp=?, gmaps_link=?, gambar=? WHERE id=?");
             $stmt->execute([$data['nama_tempat'], $data['alamat'], $data['telp'], $data['gmaps_link'], $gambar, $tempat_id]);
 
-            // HAPUS semua jadwal lama untuk tempat praktek ini
             $stmt = $db->prepare("DELETE FROM waktu_praktek WHERE tempat_id=?");
             $stmt->execute([$tempat_id]);
 
-            // INSERT jadwal yang baru (termasuk yang ditambahkan)
             if (empty($data['hari']) || empty($data['waktu'])) {
-                die("Harap isi minimal satu jadwal praktek.");
-            }
-
-            foreach ($data['hari'] as $i => $hari) {
-                $waktu = $data['waktu'][$i] ?? '';
-                if (!empty($hari) && !empty($waktu)) {
-                    $stmt = $db->prepare("INSERT INTO waktu_praktek (tempat_id, hari, waktu) VALUES (?, ?, ?)");
-                    $stmt->execute([$tempat_id, $hari, $waktu]);
+                // Diperbolehkan kosong jika tidak ada jadwal (tapi tidak disarankan)
+            } else {
+                foreach ($data['hari'] as $i => $hari) {
+                    $waktu = $data['waktu'][$i] ?? '';
+                    if (!empty($hari) && !empty($waktu)) {
+                        $stmt = $db->prepare("INSERT INTO waktu_praktek (tempat_id, hari, waktu) VALUES (?, ?, ?)");
+                        $stmt->execute([$tempat_id, $hari, $waktu]);
+                    }
                 }
             }
             break;
@@ -150,17 +169,30 @@ function handleEdit($db, $table, $data)
             break;
 
         case 'penyakit':
+            // UPDATE: kategori_id sekarang merujuk ke ID dari kategori_organ_home
             $stmt = $db->prepare("UPDATE penyakit SET kategori_id=?, nama=?, deskripsi_singkat=?, penyebab_utama=?, gejala=?, bahaya=?, cara_mencegah=?, cara_mengurangi=?, status=? WHERE id=?");
-            $stmt->execute([$data['kategori_id'], $data['nama'], $data['deskripsi_singkat'], $data['penyebab_utama'], $data['gejala'], $data['bahaya'], $data['cara_mencegah'], $data['cara_mengurangi'], $data['status'], $data['id']]);
+            $stmt->execute([
+                $data['kategori_id'], // ID dari kategori_organ_home
+                $data['nama'],
+                $data['deskripsi_singkat'],
+                $data['penyebab_utama'],
+                $data['gejala'],
+                $data['bahaya'],
+                $data['cara_mencegah'],
+                $data['cara_mengurangi'],
+                $data['status'],
+                $data['id']
+            ]);
             break;
     }
 }
 
 function handleAdd($db, $table, $data)
 {
-    $gambar = $_POST['gambar_lama'] ?? '';
+    $gambar = '';
 
     if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
+        // PERBAIKAN: Menggunakan __DIR__ yang benar
         $targetDir = __DIR__ . "/assets/images/";
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0777, true);
@@ -199,7 +231,6 @@ function handleAdd($db, $table, $data)
             break;
 
         case 'Organisasi':
-            // HANYA nama_organisasi saja
             $stmt = $db->prepare("INSERT INTO organisasi (nama_organisasi) VALUES (?)");
             $stmt->execute([$data['nama_organisasi']]);
             break;
@@ -216,9 +247,10 @@ function handleAdd($db, $table, $data)
             break;
 
         case 'penyakit':
+            // INSERT: kategori_id sekarang merujuk ke ID dari kategori_organ_home
             $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                $data['kategori_id'],
+                $data['kategori_id'], // ID dari kategori_organ_home
                 $data['nama'],
                 $data['deskripsi_singkat'] ?? '',
                 $data['penyebab_utama'] ?? '',
@@ -235,10 +267,20 @@ function handleAdd($db, $table, $data)
 function handleDelete($db, $table, $id)
 {
     if ($table == 'jadwal_praktek') {
+        // Hapus jadwal terkait dulu
         $stmt = $db->prepare("DELETE FROM waktu_praktek WHERE tempat_id = ?");
         $stmt->execute([$id]);
 
+        // Kemudian hapus tempat praktek
         $stmt = $db->prepare("DELETE FROM tempat_praktek WHERE id = ?");
+        $stmt->execute([$id]);
+    } elseif ($table == 'penyakit') {
+        // Untuk tabel penyakit, foreign key sudah di-set ON DELETE CASCADE
+        $stmt = $db->prepare("DELETE FROM penyakit WHERE id = ?");
+        $stmt->execute([$id]);
+    } elseif ($table == 'kategori_penyakit') {
+        // Untuk kategori_organ_home
+        $stmt = $db->prepare("DELETE FROM kategori_organ_home WHERE id = ?");
         $stmt->execute([$id]);
     } else {
         $stmt = $db->prepare("DELETE FROM $table WHERE id = ?");
@@ -252,8 +294,6 @@ function getData($db, $table)
 {
     switch ($table) {
         case 'jadwal_praktek':
-            // Ambil data tempat praktek saja (tanpa join waktu_praktek)
-            // Waktu praktek akan diambil terpisah di renderTableRow
             $stmt = $db->prepare("
                 SELECT DISTINCT tp.id AS tempat_id, tp.nama_tempat, tp.alamat, tp.telp, tp.gmaps_link, tp.gambar
                 FROM tempat_praktek tp
@@ -270,23 +310,18 @@ function getData($db, $table)
             break;
 
         case 'penyakit':
-            // ============================================
-            // PERUBAHAN: Join dengan kategori_organ_home, bukan kategori_organ
-            // ============================================
+            // Join langsung ke kategori_organ_home (Kategori Penyakit Utama)
             $stmt = $db->prepare("
                 SELECT p.*, 
-                       ko.nama as kategori_organ_nama,
-                       koh.nama as kategori_penyakit_nama,
-                       koh.id as kategori_penyakit_id
+                    koh.nama as kategori_penyakit_nama,
+                    koh.id as kategori_penyakit_id
                 FROM penyakit p 
-                LEFT JOIN kategori_organ ko ON p.kategori_id = ko.id
-                LEFT JOIN kategori_organ_home koh ON ko.kategori_home_id = koh.id
+                LEFT JOIN kategori_organ_home koh ON p.kategori_id = koh.id
                 ORDER BY koh.nama, p.nama
             ");
             break;
 
         default:
-            // Jika tabel tidak dikenali, kembalikan array kosong
             return [];
     }
 
@@ -296,21 +331,15 @@ function getData($db, $table)
 
 $data = getData($db, $currentTable);
 
+// Data pendukung untuk modal/form
 $tempatsStmt = $db->prepare("SELECT id, nama_tempat, alamat FROM tempat_praktek ORDER BY nama_tempat");
 $tempatsStmt->execute();
 $tempats = $tempatsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ============================================
-// PERUBAHAN: Ganti dari kategori_organ ke kategori_organ_home
-// ============================================
+// Ambil kategori penyakit utama dari kategori_organ_home
 $categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ_home WHERE status='aktif' ORDER BY nama");
 $categoriesStmt->execute();
 $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Ambil juga kategori organ untuk keperluan mapping
-$kategoriOrganStmt = $db->prepare("SELECT id, nama, kategori_home_id FROM kategori_organ ORDER BY nama");
-$kategoriOrganStmt->execute();
-$kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -323,6 +352,7 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* CSS yang ada tetap sama */
         .sidebar {
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #2e35ecff 100%);
@@ -414,7 +444,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
             cursor: pointer;
         }
 
-        /* Style untuk container jadwal agar bisa scroll */
         #jadwal-container {
             max-height: 250px;
             overflow-y: auto;
@@ -426,7 +455,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 10px;
         }
 
-        /* Custom scrollbar untuk container jadwal */
         #jadwal-container::-webkit-scrollbar {
             width: 8px;
         }
@@ -445,7 +473,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
             background: #555;
         }
 
-        /* Style untuk jadwal item */
         .jadwal-item {
             background: white;
             margin-bottom: 10px !important;
@@ -470,16 +497,13 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
             }
         }
 
-        /* Custom width untuk kolom tabel Jadwal Praktek */
         .table-jadwal-praktek th:nth-child(1),
-        /* Nama Tempat */
         .table-jadwal-praktek td:nth-child(1) {
             width: 150px;
             min-width: 150px;
         }
 
         .table-jadwal-praktek th:nth-child(2),
-        /* Alamat */
         .table-jadwal-praktek td:nth-child(2) {
             width: 230px;
             min-width: 230px;
@@ -491,21 +515,18 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .table-jadwal-praktek th:nth-child(3),
-        /* No Telp */
         .table-jadwal-praktek td:nth-child(3) {
             width: 140px;
             min-width: 140px;
         }
 
         .table-jadwal-praktek th:nth-child(4),
-        /* Hari */
         .table-jadwal-praktek td:nth-child(4) {
             width: 120px;
             min-width: 120px;
         }
 
         .table-jadwal-praktek th:nth-child(5),
-        /* Jam - DIPERLEBAR */
         .table-jadwal-praktek td:nth-child(5) {
             width: 120px;
             min-width: 120px;
@@ -513,7 +534,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .table-jadwal-praktek th:nth-child(6),
-        /* Link G.maps */
         .table-jadwal-praktek td:nth-child(6) {
             width: 100px;
             min-width: 100px;
@@ -521,7 +541,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .table-jadwal-praktek th:nth-child(7),
-        /* Gambar */
         .table-jadwal-praktek td:nth-child(7) {
             width: 120px;
             min-width: 120px;
@@ -529,19 +548,16 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .table-jadwal-praktek th:nth-child(8),
-        /* Aksi */
         .table-jadwal-praktek td:nth-child(8) {
             width: 100px;
             min-width: 100px;
             text-align: center;
         }
 
-        /* Agar tabel bisa scroll horizontal jika terlalu lebar */
         .table-responsive {
             overflow-x: auto;
         }
 
-        /* Style untuk tabel jadwal praktek */
         .table-jadwal-praktek {
             table-layout: fixed;
             width: 100%;
@@ -553,7 +569,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 sidebar p-3">
                 <div class="text-center mb-4">
                     <h4 class="text-white"><i class="fas fa-user-md"></i> Admin Panel</h4>
@@ -567,13 +582,15 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
 
                 <nav class="nav flex-column">
-                    <a href="?table=jadwal_praktek" class="nav-link <?= $currentTable == 'jadwal_praktek' ? 'active' : '' ?>">
+                    <a href="?table=jadwal_praktek"
+                        class="nav-link <?= $currentTable == 'jadwal_praktek' ? 'active' : '' ?>">
                         <i class="fas fa-calendar-alt me-2"></i> Jadwal Praktek
                     </a>
                     <a href="?table=Organisasi" class="nav-link <?= $currentTable == 'Organisasi' ? 'active' : '' ?>">
                         <i class="fas fa-star me-2"></i> Organisasi
                     </a>
-                    <a href="?table=kategori_penyakit" class="nav-link <?= $currentTable == 'kategori_penyakit' ? 'active' : '' ?>">
+                    <a href="?table=kategori_penyakit"
+                        class="nav-link <?= $currentTable == 'kategori_penyakit' ? 'active' : '' ?>">
                         <i class="fas fa-list me-2"></i> Kategori Penyakit
                     </a>
                     <a href="?table=penyakit" class="nav-link <?= $currentTable == 'penyakit' ? 'active' : '' ?>">
@@ -582,14 +599,12 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                 </nav>
             </div>
 
-            <!-- Main Content -->
             <div class="col-md-9 col-lg-10 p-4">
                 <div class="content-header">
                     <h2><i class="fas fa-tachometer-alt me-3"></i>Dashboard Admin</h2>
                     <p class="mb-0">Kelola data website medis dengan mudah</p>
                 </div>
 
-                <!-- Table Management -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
@@ -619,7 +634,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Add Modal -->
     <div class="modal fade" id="addModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -631,7 +645,7 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="modal-body">
                         <input type="hidden" name="action" value="add">
                         <input type="hidden" name="table" value="<?= $currentTable ?>">
-                        <?php renderForm($currentTable, null, $categories, $tempats); ?>
+                        <?php renderForm($currentTable, null, $categories, $tempats, $kategoriOrgans); ?>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -642,7 +656,6 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -669,6 +682,17 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Mengubah kode JavaScript agar bisa mengakses fungsi PHP helper untuk path gambar
+        // PENTING: Anda harus memastikan fungsi getCleanedImagePath() tersedia di scope ini (di luar script tag)
+        // Di sini saya mendefinisikan ulang fungsi PHP helper dalam JavaScript sebagai utility lokal
+        function getAdminImagePathJS(filename) {
+             if (!filename) return '';
+             // Bersihkan path yang mungkin ada dan tambahkan prefix 'assets/images/'
+             let cleaned = filename.replace(/assets\/images\/|\.\.\/assets\/images\/|\//g, '');
+             return `assets/images/${cleaned}`;
+        }
+
+
         function editData(id, tempatId, data) {
             document.getElementById('edit_id').value = id || '';
             if (document.getElementById('edit_tempat_id')) {
@@ -688,16 +712,16 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <?php if ($currentTable == 'jadwal_praktek'): ?>
                     form.innerHTML = `
-                <input type="hidden" name="action" value="delete">
-                <input type="hidden" name="table" value="<?= $currentTable ?>">
-                <input type="hidden" name="tempat_id" value="${tempatId}">
-            `;
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="table" value="<?= $currentTable ?>">
+                    <input type="hidden" name="tempat_id" value="${tempatId}">
+                `;
                 <?php else: ?>
                     form.innerHTML = `
-                <input type="hidden" name="action" value="delete">
-                <input type="hidden" name="table" value="<?= $currentTable ?>">
-                <input type="hidden" name="id" value="${id}">
-            `;
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="table" value="<?= $currentTable ?>">
+                    <input type="hidden" name="id" value="${id}">
+                `;
                 <?php endif; ?>
 
                 document.body.appendChild(form);
@@ -717,178 +741,171 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
                 jadwals.forEach((j, i) => {
                     jadwalFields += `
-                <div class="jadwal-item mb-3 border p-2 rounded">
-                    <label>Hari</label>
-                    <input type="text" class="form-control mb-2" name="hari[]" value="${j.hari}" required>
-                    <label>Jam</label>
-                    <input type="text" class="form-control mb-2" name="waktu[]" value="${j.waktu}" required>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Hapus</button>
-                </div>
-            `;
+                    <div class="jadwal-item mb-3 border p-2 rounded">
+                        <label>Hari</label>
+                        <input type="text" class="form-control mb-2" name="hari[]" value="${j.hari}" required>
+                        <label>Jam</label>
+                        <input type="text" class="form-control mb-2" name="waktu[]" value="${j.waktu}" required>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Hapus</button>
+                    </div>
+                `;
                 });
 
+                // PERBAIKAN JS: Menggunakan fungsi helper untuk path gambar
+                const imagePathJadwal = getAdminImagePathJS(data.gambar);
+
                 html = `
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Tempat</label>
-                        <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat}" required>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Tempat</label>
+                            <input type="text" class="form-control" name="nama_tempat" value="${data.nama_tempat}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alamat</label>
+                            <input type="text" class="form-control" name="alamat" value="${data.alamat}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No Telp</label>
+                            <input type="text" class="form-control" name="telp" value="${data.telp}" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Alamat</label>
-                        <input type="text" class="form-control" name="alamat" value="${data.alamat}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">No Telp</label>
-                        <input type="text" class="form-control" name="telp" value="${data.telp}" required>
+                    <div class="col-md-6">
+                        <div id="jadwal-container">
+                            ${jadwalFields}
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="tambahJadwalBaru()">+ Tambah Jadwal</button>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Link G.maps</label>
+                            <input type="text" class="form-control" name="gmaps_link" value="${data.gmaps_link || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Gambar</label><br>
+                            ${data.gambar ? `<img src="${imagePathJadwal}" alt="Preview" style="max-width: 120px; display:block; margin-bottom:10px;">` : ''}
+                            <input type="file" class="form-control" name="gambar">
+                            <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div id="jadwal-container">
-                        ${jadwalFields}
-                    </div>
-                    <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="tambahJadwalBaru()">+ Tambah Jadwal</button>
-                    <div class="mb-3 mt-3">
-                        <label class="form-label">Link G.maps</label>
-                        <input type="text" class="form-control" name="gmaps_link" value="${data.gmaps_link || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gambar</label><br>
-                        ${data.gambar ? `<img src="assets/images/${data.gambar}" alt="Preview" style="max-width: 120px; display:block; margin-bottom:10px;">` : ''}
-                        <input type="file" class="form-control" name="gambar">
-                        <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
-                    </div>
-                </div>
-            </div>
-        `;
+            `;
             <?php endif; ?>
 
             <?php if ($currentTable == 'Organisasi'): ?>
                 html = `
-        <div class="mb-3">
-            <label class="form-label">Nama Organisasi</label>
-            <input type="text" class="form-control" name="nama_organisasi" value="${data.nama_organisasi}" required>
-        </div>
-    `;
+                <div class="mb-3">
+                    <label class="form-label">Nama Organisasi</label>
+                    <input type="text" class="form-control" name="nama_organisasi" value="${data.nama_organisasi}" required>
+                </div>
+            `;
             <?php endif; ?>
 
             <?php if ($currentTable == 'kategori_penyakit'): ?>
+                // PERBAIKAN JS: Menggunakan fungsi helper untuk path gambar
+                const imagePathKategori = getAdminImagePathJS(data.gambar);
+                
                 html = `
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Kategori Penyakit</label>
-                        <input type="text" class="form-control" name="nama" value="${data.nama}" required>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Kategori Penyakit</label>
+                            <input type="text" class="form-control" name="nama" value="${data.nama}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Warna</label>
+                            <input type="color" class="form-control form-control-color" name="warna" value="${data.warna || '#3b82f6'}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
+                                <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Warna</label>
-                        <input type="color" class="form-control form-control-color" name="warna" value="${data.warna || '#3b82f6'}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
-                            <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
-                        </select>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Deskripsi</label>
+                            <textarea class="form-control" name="deskripsi" rows="5">${data.deskripsi || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Gambar Icon</label><br>
+                            ${data.gambar ? `<img src="${imagePathKategori}" style="max-width:100px;margin-bottom:10px;border-radius:8px;">` : ''}
+                            <input type="file" class="form-control" name="gambar">
+                            <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Deskripsi</label>
-                        <textarea class="form-control" name="deskripsi" rows="5">${data.deskripsi || ''}</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gambar Icon</label><br>
-                        ${data.gambar ? `<img src="assets/images/${data.gambar}" style="max-width:100px;margin-bottom:10px;border-radius:8px;">` : ''}
-                        <input type="file" class="form-control" name="gambar">
-                        <input type="hidden" name="gambar_lama" value="${data.gambar || ''}">
-                    </div>
-                </div>
-            </div>
-        `;
+            `;
             <?php endif; ?>
 
             <?php if ($currentTable == 'penyakit'): ?>
-                // Ambil data kategori organ dari PHP
-                const kategoriOrgans = <?php echo json_encode($kategoriOrgans); ?>;
+                // Ambil data kategori home/penyakit dari PHP
                 const categories = <?php echo json_encode($categories); ?>;
 
-                // Buat grouped select
-                let organOptions = '<option value="">-- Pilih Kategori Organ --</option>';
-
-                const grouped = {};
-                kategoriOrgans.forEach(ko => {
-                    const homeId = ko.kategori_home_id || 0;
-                    if (!grouped[homeId]) grouped[homeId] = [];
-                    grouped[homeId].push(ko);
-                });
+                // Buat options untuk select
+                let categoryOptions = '<option value="">-- Pilih Kategori Penyakit --</option>';
 
                 categories.forEach(cat => {
-                    if (grouped[cat.id]) {
-                        organOptions += `<optgroup label="${cat.nama}">`;
-                        grouped[cat.id].forEach(ko => {
-                            const selected = (data.kategori_id == ko.id) ? 'selected' : '';
-                            organOptions += `<option value="${ko.id}" ${selected}>${ko.nama}</option>`;
-                        });
-                        organOptions += '</optgroup>';
-                    }
+                    const selected = (data.kategori_id == cat.id) ? 'selected' : '';
+                    categoryOptions += `<option value="${cat.id}" ${selected}>${cat.nama}</option>`;
                 });
 
                 html = `
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Kategori Organ</label>
-                        <select class="form-select" name="kategori_id" required>
-                            ${organOptions}
-                        </select>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Kategori Penyakit</label>
+                            <select class="form-select" name="kategori_id" required>
+                                ${categoryOptions}
+                            </select>
+                            <small class="text-muted">Pilih kategori penyakit yang sesuai</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Penyakit</label>
+                            <input type="text" class="form-control" name="nama" value="${data.nama}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
+                                <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nama Penyakit</label>
-                        <input type="text" class="form-control" name="nama" value="${data.nama}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
-                            <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Deskripsi Singkat</label>
-                        <textarea class="form-control" name="deskripsi_singkat" rows="3">${data.deskripsi_singkat || ''}</textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Penyebab Utama</label>
-                        <textarea class="form-control" name="penyebab_utama" rows="4">${data.penyebab_utama || ''}</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gejala</label>
-                        <textarea class="form-control" name="gejala" rows="4">${data.gejala || ''}</textarea>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Deskripsi Singkat</label>
+                            <textarea class="form-control" name="deskripsi_singkat" rows="3">${data.deskripsi_singkat || ''}</textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Bahaya</label>
-                        <textarea class="form-control" name="bahaya" rows="4">${data.bahaya || ''}</textarea>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Penyebab Utama</label>
+                            <textarea class="form-control" name="penyebab_utama" rows="4">${data.penyebab_utama || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Gejala</label>
+                            <textarea class="form-control" name="gejala" rows="4">${data.gejala || ''}</textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Cara Mencegah</label>
-                        <textarea class="form-control" name="cara_mencegah" rows="4">${data.cara_mencegah || ''}</textarea>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Bahaya</label>
+                            <textarea class="form-control" name="bahaya" rows="4">${data.bahaya || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cara Mencegah</label>
+                            <textarea class="form-control" name="cara_mencegah" rows="4">${data.cara_mencegah || ''}</textarea>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Cara Mengurangi</label>
-                <textarea class="form-control" name="cara_mengurangi" rows="4">${data.cara_mengurangi || ''}</textarea>
-            </div>
-        `;
+                <div class="mb-3">
+                    <label class="form-label">Cara Mengurangi</label>
+                    <textarea class="form-control" name="cara_mengurangi" rows="4">${data.cara_mengurangi || ''}</textarea>
+                </div>
+            `;
             <?php endif; ?>
 
 
@@ -930,14 +947,14 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
             item.classList.add('jadwal-item', 'mb-3', 'border', 'p-2', 'rounded');
             item.style.backgroundColor = 'white';
             item.innerHTML = `
-        <label class="fw-bold text-primary">Hari</label>
-        <input type="text" class="form-control mb-2" name="hari[]" placeholder="Contoh: Senin, Selasa, dll" required>
-        <label class="fw-bold text-primary">Jam</label>
-        <input type="text" class="form-control mb-2" name="waktu[]" placeholder="Contoh: 08:00 - 12:00" required>
-        <button type="button" class="btn btn-danger btn-sm w-100" onclick="hapusJadwal(this)">
-            <i class="fas fa-trash me-1"></i> Hapus Jadwal Ini
-        </button>
-    `;
+                <label class="fw-bold text-primary">Hari</label>
+                <input type="text" class="form-control mb-2" name="hari[]" placeholder="Contoh: Senin, Selasa, dll" required>
+                <label class="fw-bold text-primary">Jam</label>
+                <input type="text" class="form-control mb-2" name="waktu[]" placeholder="Contoh: 08:00 - 12:00" required>
+                <button type="button" class="btn btn-danger btn-sm w-100" onclick="hapusJadwal(this)">
+                    <i class="fas fa-trash me-1"></i> Hapus Jadwal Ini
+                </button>
+            `;
 
             container.appendChild(item);
             console.log('Jadwal baru berhasil ditambahkan!');
@@ -1014,9 +1031,7 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                 break;
 
             case 'penyakit':
-                // ============================================
-                // PERUBAHAN: Ganti "Kategori" jadi "Kategori Penyakit"
-                // ============================================
+                // Label diubah menjadi Kategori Penyakit
                 echo '<tr>
                 <th>ID</th>
                 <th>Kategori Penyakit</th>
@@ -1039,16 +1054,13 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
         switch ($table) {
             case 'jadwal_praktek':
-                // Cek apakah tempat_id ini sudah di-render
                 $tempat_id = $row['tempat_id'] ?? null;
 
                 if (in_array($tempat_id, $rendered_tempat)) {
-                    // Skip jika sudah di-render
                     echo '</tr>';
                     return;
                 }
 
-                // Tandai tempat_id ini sudah di-render
                 $rendered_tempat[] = $tempat_id;
 
                 echo '<td>' . htmlspecialchars($row['nama_tempat'] ?? '') . '</td>';
@@ -1098,7 +1110,8 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
                 echo '<td>';
                 if (!empty($row['gambar'])) {
-                    echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '">';
+                    // PERBAIKAN: Menggunakan fungsi helper
+                    echo '<img src="' . getCleanedImagePath($row['gambar']) . '">';
                 } else {
                     echo 'Tidak ada gambar';
                 }
@@ -1146,7 +1159,8 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
 
                 echo '<td>';
                 if (!empty($row['gambar'])) {
-                    echo '<img src="assets/images/' . htmlspecialchars($row['gambar']) . '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">';
+                    // PERBAIKAN: Menggunakan fungsi helper
+                    echo '<img src="' . getCleanedImagePath($row['gambar']) . '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">';
                 } else {
                     echo '-';
                 }
@@ -1169,9 +1183,7 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'penyakit':
                 echo '<td>' . $row['id'] . '</td>';
 
-                // ============================================
-                // PERUBAHAN: Tampilkan kategori_penyakit_nama
-                // ============================================
+                // Tampilkan nama Kategori Penyakit (dari kategori_organ_home)
                 echo '<td>';
                 if (!empty($row['kategori_penyakit_nama'])) {
                     echo '<span class="badge bg-primary">' . htmlspecialchars($row['kategori_penyakit_nama']) . '</span>';
@@ -1201,75 +1213,68 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Function to render forms
-    function renderForm($table, $data = null, $categories = [], $tempats = [])
+    function renderForm($table, $data = null, $categories = [], $tempats = [], $kategoriOrgans = [])
     {
-        global $db, $kategoriOrgans;
         $isEdit = $data !== null;
 
         switch ($table) {
             case 'jadwal_praktek':
                 echo '
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Tempat</label>
-                        <input type="text" class="form-control" name="nama_tempat" placeholder="Masukkan nama tempat" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Alamat</label>
-                        <input type="text" class="form-control" name="alamat" placeholder="Masukkan alamat" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">No Telp</label>
-                        <input type="text" class="form-control" name="telp" placeholder="Masukkan nomor telepon" required>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div id="jadwal-container">
-                        <div class="jadwal-item mb-3 border p-2 rounded">
-                            <label>Hari</label>
-                            <input type="text" class="form-control mb-2" name="hari[]" placeholder="Contoh: Senin" required>
-                            <label>Jam</label>
-                            <input type="text" class="form-control mb-2" name="waktu[]" placeholder="08:00 - 12:00" required>
-                            <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Tempat</label>
+                            <input type="text" class="form-control" name="nama_tempat" placeholder="Masukkan nama tempat" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alamat</label>
+                            <input type="text" class="form-control" name="alamat" placeholder="Masukkan alamat" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No Telp</label>
+                            <input type="text" class="form-control" name="telp" placeholder="Masukkan nomor telepon" required>
                         </div>
                     </div>
-                    <button type="button" id="add-jadwal" class="btn btn-secondary btn-sm mt-2">+ Tambah Jadwal</button>
 
-                    <div class="mb-3 mt-3">
-                        <label class="form-label">Link G.maps</label>
-                        <input type="url" class="form-control" name="gmaps_link" placeholder="Tempel link Google Maps" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gambar</label>
-                        <input type="file" class="form-control" name="gambar" required>
+                    <div class="col-md-6">
+                        <div id="jadwal-container">
+                            <div class="jadwal-item mb-3 border p-2 rounded">
+                                <label>Hari</label>
+                                <input type="text" class="form-control mb-2" name="hari[]" placeholder="Contoh: Senin" required>
+                                <label>Jam</label>
+                                <input type="text" class="form-control mb-2" name="waktu[]" placeholder="08:00 - 12:00" required>
+                                <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
+                            </div>
+                        </div>
+                        <button type="button" id="add-jadwal" class="btn btn-secondary btn-sm mt-2" onclick="tambahJadwalBaru()">+ Tambah Jadwal</button>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Link G.maps</label>
+                            <input type="url" class="form-control" name="gmaps_link" placeholder="Tempel link Google Maps" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Gambar</label>
+                            <input type="file" class="form-control" name="gambar" required>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <script>
-                document.getElementById("add-jadwal").addEventListener("click", function() {
-                    const container = document.getElementById("jadwal-container");
-                    const item = document.createElement("div");
-                    item.classList.add("jadwal-item", "mb-3", "border", "p-2", "rounded");
-                    item.innerHTML = `
-                        <label>Hari</label>
-                        <input type="text" class="form-control mb-2" name="hari[]" required>
-                        <label>Jam</label>
-                        <input type="text" class="form-control mb-2" name="waktu[]" required>
-                        <button type="button" class="btn btn-danger btn-sm remove-jadwal">Hapus</button>
-                    `;
-                    container.appendChild(item);
-                });
-
-                document.addEventListener("click", function(e) {
-                    if (e.target.classList.contains("remove-jadwal")) {
-                        e.target.parentElement.remove();
-                    }
-                });
-            </script>
-            ';
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        const addModalEl = document.getElementById("addModal");
+                        if (addModalEl) {
+                            addModalEl.addEventListener("click", function(e) {
+                                if (e.target.id === "add-jadwal") {
+                                    tambahJadwalBaru();
+                                }
+                                if (e.target.classList.contains("remove-jadwal")) {
+                                    e.target.parentElement.remove();
+                                }
+                            });
+                        }
+                    });
+                </script>
+                ';
                 break;
 
             case 'Organisasi':
@@ -1281,6 +1286,8 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                 break;
 
             case 'kategori_penyakit':
+                $imagePath = $isEdit && !empty($data['gambar']) ? getCleanedImagePath($data['gambar']) : '';
+
                 echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -1307,7 +1314,8 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="mb-3">
                         <label class="form-label">Gambar Icon</label>';
                 if ($isEdit && !empty($data['gambar'])) {
-                    echo '<br><img src="assets/images/' . htmlspecialchars($data['gambar']) . '" style="max-width:100px;margin-bottom:10px;border-radius:8px;">';
+                    // PERBAIKAN: Menggunakan fungsi helper
+                    echo '<br><img src="' . $imagePath . '" style="max-width:100px;margin-bottom:10px;border-radius:8px;">';
                 }
                 echo '      <input type="file" class="form-control" name="gambar"' . ($isEdit ? '' : ' required') . '>
                         <input type="hidden" name="gambar_lama" value="' . ($isEdit ? htmlspecialchars($data['gambar'] ?? '') : '') . '">
@@ -1320,33 +1328,18 @@ $kategoriOrgans = $kategoriOrganStmt->fetchAll(PDO::FETCH_ASSOC);
                 echo '<div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label class="form-label">Kategori Organ</label>
+                        <label class="form-label">Kategori Penyakit</label>
                         <select class="form-select" name="kategori_id" required>';
-                echo '<option value="">-- Pilih Kategori Organ --</option>';
+                echo '<option value="">-- Pilih Kategori Penyakit --</option>';
 
-                // Kelompokkan berdasarkan kategori home
-                $grouped = [];
-                foreach ($kategoriOrgans as $ko) {
-                    $homeId = $ko['kategori_home_id'] ?? 0;
-                    if (!isset($grouped[$homeId])) {
-                        $grouped[$homeId] = [];
-                    }
-                    $grouped[$homeId][] = $ko;
-                }
-
+                // Hanya gunakan data dari kategori_organ_home ($categories)
                 foreach ($categories as $cat) {
-                    if (isset($grouped[$cat['id']])) {
-                        echo '<optgroup label="' . htmlspecialchars($cat['nama']) . '">';
-                        foreach ($grouped[$cat['id']] as $ko) {
-                            $selected = ($isEdit && $data['kategori_id'] == $ko['id']) ? 'selected' : '';
-                            echo '<option value="' . $ko['id'] . '" ' . $selected . '>' . htmlspecialchars($ko['nama']) . '</option>';
-                        }
-                        echo '</optgroup>';
-                    }
+                    $selected = ($isEdit && $data['kategori_id'] == $cat['id']) ? 'selected' : '';
+                    echo '<option value="' . $cat['id'] . '" ' . $selected . '>' . htmlspecialchars($cat['nama']) . '</option>';
                 }
 
                 echo '</select>
-                        <small class="text-muted">Pilih organ yang sesuai (Mulut, Lambung, dll)</small>
+                        <small class="text-muted">Pilih kategori penyakit yang sesuai</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Penyakit</label>

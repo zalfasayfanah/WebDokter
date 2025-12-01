@@ -1050,7 +1050,9 @@ section.organisasi .container {
                 <div class="card">
                     <a href="<?= htmlspecialchars($tempat['gmaps_link'] ?? '#') ?>" target="_blank" style="text-decoration:none; color:inherit;">
                         <?php if (!empty($tempat['gambar'])): ?>
-                            <img src="admin/assets/images/<?= htmlspecialchars($tempat['gambar']) ?>" alt="<?= htmlspecialchars($tempat['nama_tempat']) ?>">
+                            <img src="assets/images/<?= htmlspecialchars(basename($tempat['gambar'])) ?>" 
+                                 alt="<?= htmlspecialchars($tempat['nama_tempat']) ?>"
+                                 onerror="this.src='assets/images/default-hospital.jpg'">
                         <?php else: ?>
                             <img src="assets/images/default-hospital.jpg" alt="Default Image">
                         <?php endif; ?>

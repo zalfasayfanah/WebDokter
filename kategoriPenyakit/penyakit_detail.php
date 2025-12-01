@@ -10,13 +10,13 @@ $penyakit_id = isset($_GET['id']) ? (int)$_GET['id'] : 1;
 // AMBIL DATA PENYAKIT DENGAN RELASI KE KATEGORI HOME
 // =================================================================
 $query_penyakit = "SELECT p.*, 
-                          k.nama as kategori_nama, 
-                          k.kategori_home_id,
-                          kh.nama as kategori_home_nama
-                   FROM penyakit p 
-                   LEFT JOIN kategori_organ k ON p.kategori_id = k.id 
-                   LEFT JOIN kategori_organ_home kh ON k.kategori_home_id = kh.id
-                   WHERE p.id = :id";
+                            k.nama as kategori_nama, 
+                            k.kategori_home_id,
+                            kh.nama as kategori_home_nama
+                    FROM penyakit p 
+                    LEFT JOIN kategori_organ k ON p.kategori_id = k.id 
+                    LEFT JOIN kategori_organ_home kh ON k.kategori_home_id = kh.id
+                    WHERE p.id = :id";
 $stmt_penyakit = $db->prepare($query_penyakit);
 $stmt_penyakit->bindParam(':id', $penyakit_id);
 $stmt_penyakit->execute();
@@ -25,6 +25,15 @@ $penyakit = $stmt_penyakit->fetch(PDO::FETCH_ASSOC);
 if (!$penyakit) {
     header('Location: ../Penyakit/penyakit_home.php');
     exit;
+}
+
+// Fungsi helper untuk menentukan path gambar (perlu didefinisikan di sini jika tidak ada)
+function getCleanedImagePath($filename) {
+    if (empty($filename)) return '';
+    // Path relatif dari folder "Penyakit" ke "assets/images" adalah "../assets/images/"
+    $cleanedFilename = basename($filename);
+    $cleanedFilename = str_replace(['assets/images/', '../assets/images/'], '', $cleanedFilename);
+    return '../assets/images/' . htmlspecialchars($cleanedFilename);
 }
 ?>
 
@@ -147,9 +156,6 @@ if (!$penyakit) {
     
     <div class="main-container">
         <div class="content-area">
-            <!-- =================================================================
-                 PERUBAHAN: Tombol kembali ke kategori home, bukan kategori organ
-            ================================================================= -->
             <button class="back-btn" onclick="window.location.href='penyakit_kategori.php?id=<?php echo $penyakit['kategori_home_id']; ?>'">
                 ← Kembali ke <?php echo htmlspecialchars($penyakit['kategori_home_nama']); ?>
             </button>
@@ -164,6 +170,14 @@ if (!$penyakit) {
                     <?php echo nl2br(htmlspecialchars($penyakit['deskripsi_singkat'])); ?>
                 </div>
                 
+                <?php if ($penyakit['gambar']): ?>
+                <div class="disease-image-container" style="margin-bottom: 2rem; text-align: center;">
+                    <img src="<?php echo getCleanedImagePath($penyakit['gambar']); ?>" 
+                        alt="Ilustrasi <?php echo htmlspecialchars($penyakit['nama']); ?>" 
+                        style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    ); ?>]
+                </div>
+                <?php endif; ?>
                 <?php if ($penyakit['penyebab_utama']): ?>
                 <div class="disease-section">
                     <h3>Penyebab Utama</h3>
