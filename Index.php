@@ -42,7 +42,7 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dr. Arif Rahman, Sp.PD - Spesialis Penyakit Dalam</title>
     <style>
-        * {
+         {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -707,6 +707,40 @@ body {
         0 4px 10px rgba(30, 58, 138, 0.3),
         0 2px 4px rgba(0, 0, 0, 0.1),
         inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+/* Perbaikan untuk tampilan full */
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+header, nav {
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+.container {
+    max-width: 100% !important;
+    padding: 0 20px !important;
+}
+
+/* Jika hero tidak full */
+.hero {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+section {
+    width: 100% !important;
+    margin: 0 !important;
 }
     </style>
 </head>
