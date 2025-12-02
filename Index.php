@@ -708,7 +708,7 @@ body {
         0 2px 4px rgba(0, 0, 0, 0.1),
         inset 0 2px 5px rgba(0, 0, 0, 0.3);
 }
-/* Perbaikan untuk tampilan full */
+/* Perbaikan untuk tampilan full dengan jarak yang sesuai */
 body {
     margin: 0 !important;
     padding: 0 !important;
@@ -725,22 +725,50 @@ html {
 header, nav {
     margin: 0 !important;
     width: 100% !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
 }
 
 .container {
-    max-width: 100% !important;
-    padding: 0 20px !important;
+    max-width: 1200px !important;  /* Batasi lebar maksimal */
+    margin: 0 auto !important;      /* Tengah otomatis */
+    padding: 0 20px !important;     /* Jarak kiri-kanan 20px */
 }
 
-/* Jika hero tidak full */
+/* Hero full tapi konten ada jarak */
 .hero {
     width: 100% !important;
     margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.hero .container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 40px !important;  /* Jarak lebih besar untuk hero */
 }
 
 section {
     width: 100% !important;
     margin: 0 !important;
+}
+
+/* Untuk section dengan background, biarkan full */
+section.jadwal,
+section.experience,
+section.organisasi {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Tapi konten di dalamnya tetap ada jarak */
+section.jadwal .container,
+section.experience .container,
+section.organisasi .container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 40px !important;
 }
     </style>
 </head>
