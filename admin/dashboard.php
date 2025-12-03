@@ -5,9 +5,9 @@ session_start();
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website3'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
+    private $db_name = 'medical_website4'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
     private $username = 'root';
-    private $password = '';
+    private $password = 'root';
     public $conn;
 
     public function getConnection()
@@ -16,7 +16,7 @@ class Database
         try {
             // PERBAIKAN: Menggunakan port 3307 sesuai dengan permintaan Anda
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
@@ -55,10 +55,10 @@ function getCleanedImagePath($filename) {
 // ---------------------------------------------
 
 
-// Ambil data kategori organ (masih diperlukan jika menu kategori_organ masih ada)
-$kategoriOrgansStmt = $db->prepare("SELECT id, nama, kategori_home_id FROM kategori_organ WHERE status='aktif' ORDER BY urutan, nama");
-$kategoriOrgansStmt->execute();
-$kategoriOrgans = $kategoriOrgansStmt->fetchAll(PDO::FETCH_ASSOC);
+// // Ambil data kategori organ (masih diperlukan jika menu kategori_organ masih ada)
+// $kategoriOrgansStmt = $db->prepare("SELECT id, nama FROM kategori_organ_home WHERE status='aktif' ORDER BY nama");
+// $kategoriOrgansStmt->execute();
+// $kategoriOrgans = $kategoriOrgansStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Ambil kategori penyakit utama dari kategori_organ_home
 $categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ_home WHERE status='aktif' ORDER BY nama");
@@ -247,10 +247,10 @@ function handleAdd($db, $table, $data)
             break;
 
         case 'penyakit':
-            // INSERT: kategori_id sekarang merujuk ke ID dari kategori_organ_home
+            // INSERT: kategori_id sekarang merujuk ke ID dari kategori_organ
             $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                $data['kategori_id'], // ID dari kategori_organ_home
+                $data['kategori_id'], // ID dari kategori_organ
                 $data['nama'],
                 $data['deskripsi_singkat'] ?? '',
                 $data['penyebab_utama'] ?? '',
@@ -310,7 +310,7 @@ function getData($db, $table)
             break;
 
         case 'penyakit':
-            // Join langsung ke kategori_organ_home (Kategori Penyakit Utama)
+            // Join ke kategori_organ_home (bukan kategori_organ)
             $stmt = $db->prepare("
                 SELECT p.*, 
                     koh.nama as kategori_penyakit_nama,
@@ -645,7 +645,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="modal-body">
                         <input type="hidden" name="action" value="add">
                         <input type="hidden" name="table" value="<?= $currentTable ?>">
-                        <?php renderForm($currentTable, null, $categories, $tempats, $kategoriOrgans); ?>
+                        <?php renderForm($currentTable, null, $categories, $tempats); ?>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -858,7 +858,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                             <select class="form-select" name="kategori_id" required>
                                 ${categoryOptions}
                             </select>
-                            <small class="text-muted">Pilih kategori penyakit yang sesuai</small>
+                            <small class="text-muted">Pilih kategori penyakit dari daftar yang tersedia</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Nama Penyakit</label>
@@ -997,6 +997,35 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 }
             }
         }
+
+        // Ambil data kategori saat halaman load
+        const categoriesData = <?php echo json_encode($categories); ?>;
+        
+        // Fungsi untuk populate kategori di form add
+        function populateCategoriesInAddModal() {
+            const addModal = document.getElementById('addModal');
+            const select = addModal.querySelector('select[name="kategori_id"]');
+            
+            if (select && categoriesData.length > 0) {
+                // Clear existing options kecuali placeholder
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                
+                // Tambah kategori dari data
+                categoriesData.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.nama;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        // Jalankan saat modal add dibuka
+        document.getElementById('addModal').addEventListener('show.bs.modal', function() {
+            populateCategoriesInAddModal();
+        });
     </script>
 
     <?php
@@ -1213,7 +1242,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Function to render forms
-    function renderForm($table, $data = null, $categories = [], $tempats = [], $kategoriOrgans = [])
+    function renderForm($table, $data = null, $categories = [], $tempats = [])
     {
         $isEdit = $data !== null;
 
@@ -1330,67 +1359,69 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="mb-3">
                         <label class="form-label">Kategori Penyakit</label>
                         <select class="form-select" name="kategori_id" required>';
-                echo '<option value="">-- Pilih Kategori Penyakit --</option>';
-
-                // Hanya gunakan data dari kategori_organ_home ($categories)
-                foreach ($categories as $cat) {
-                    $selected = ($isEdit && $data['kategori_id'] == $cat['id']) ? 'selected' : '';
-                    echo '<option value="' . $cat['id'] . '" ' . $selected . '>' . htmlspecialchars($cat['nama']) . '</option>';
-                }
-
-                echo '</select>
-                        <small class="text-muted">Pilih kategori penyakit yang sesuai</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nama Penyakit</label>
-                        <input type="text" class="form-control" name="nama" value="' . ($isEdit ? htmlspecialchars($data['nama']) : '') . '" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
-                            <option value="aktif" ' . ($isEdit && $data['status'] == 'aktif' ? 'selected' : '') . '>Aktif</option>
-                            <option value="nonaktif" ' . ($isEdit && $data['status'] == 'nonaktif' ? 'selected' : '') . '>Non Aktif</option>
-                        </select>
-                    </div>
+    
+    echo '<option value="">-- Pilih Kategori Penyakit --</option>';
+    
+    // Pastikan $categories sudah terisi dengan data
+    if (!empty($categories)) {
+        foreach ($categories as $cat) {
+            $selected = ($isEdit && isset($data['kategori_id']) && $data['kategori_id'] == $cat['id']) ? 'selected' : '';
+            echo '<option value="' . htmlspecialchars($cat['id']) . '" ' . $selected . '>' . htmlspecialchars($cat['nama']) . '</option>';
+        }
+    } else {
+        echo '<option value="">Tidak ada kategori tersedia</option>';
+    }
+    
+    echo '</select>
+                    <small class="text-muted">Pilih kategori penyakit dari daftar yang tersedia</small>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Deskripsi Singkat</label>
-                        <textarea class="form-control" name="deskripsi_singkat" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi_singkat']) : '') . '</textarea>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Nama Penyakit</label>
+                    <input type="text" class="form-control" name="nama" value="' . ($isEdit ? htmlspecialchars($data['nama']) : '') . '" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="aktif" ' . ($isEdit && $data['status'] == 'aktif' ? 'selected' : '') . '>Aktif</option>
+                        <option value="nonaktif" ' . ($isEdit && $data['status'] == 'nonaktif' ? 'selected' : '') . '>Non Aktif</option>
+                    </select>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Penyebab Utama</label>
-                        <textarea class="form-control" name="penyebab_utama" rows="4">' . ($isEdit ? htmlspecialchars($data['penyebab_utama']) : '') . '</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gejala</label>
-                        <textarea class="form-control" name="gejala" rows="4">' . ($isEdit ? htmlspecialchars($data['gejala']) : '') . '</textarea>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Bahaya</label>
-                        <textarea class="form-control" name="bahaya" rows="4">' . ($isEdit ? htmlspecialchars($data['bahaya']) : '') . '</textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Cara Mencegah</label>
-                        <textarea class="form-control" name="cara_mencegah" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mencegah']) : '') . '</textarea>
-                    </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Deskripsi Singkat</label>
+                    <textarea class="form-control" name="deskripsi_singkat" rows="3">' . ($isEdit ? htmlspecialchars($data['deskripsi_singkat']) : '') . '</textarea>
                 </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Cara Mengurangi</label>
-                <textarea class="form-control" name="cara_mengurangi" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mengurangi']) : '') . '</textarea>
-            </div>';
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Penyebab Utama</label>
+                    <textarea class="form-control" name="penyebab_utama" rows="4">' . ($isEdit ? htmlspecialchars($data['penyebab_utama']) : '') . '</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Gejala</label>
+                    <textarea class="form-control" name="gejala" rows="4">' . ($isEdit ? htmlspecialchars($data['gejala']) : '') . '</textarea>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Bahaya</label>
+                    <textarea class="form-control" name="bahaya" rows="4">' . ($isEdit ? htmlspecialchars($data['bahaya']) : '') . '</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Cara Mencegah</label>
+                    <textarea class="form-control" name="cara_mencegah" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mencegah']) : '') . '</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Cara Mengurangi</label>
+            <textarea class="form-control" name="cara_mengurangi" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mengurangi']) : '') . '</textarea>
+        </div>';
                 break;
         }
     }
     ?>
 
-</body>
-
-</html>

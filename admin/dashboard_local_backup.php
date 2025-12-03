@@ -5,9 +5,9 @@ session_start();
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website3';
+    private $db_name = 'medical_website4';
     private $username = 'root';
-    private $password = '';
+    private $password = 'root';
     public $conn;
 
     public function getConnection()
@@ -15,7 +15,7 @@ class Database
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
@@ -197,7 +197,7 @@ $doctorsStmt->execute();
 $doctors = $doctorsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get categories for dropdown
-$categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ ORDER BY nama");
+$categoriesStmt = $db->prepare("SELECT id, nama FROM kategori_organ_home ORDER BY nama");
 $categoriesStmt->execute();
 $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
