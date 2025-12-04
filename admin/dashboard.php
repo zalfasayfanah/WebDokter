@@ -5,9 +5,9 @@ session_start();
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website4'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
+    private $db_name = 'medical_website'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
     private $username = 'root';
-    private $password = 'root';
+    private $password = '';
     public $conn;
 
     public function getConnection()
@@ -16,7 +16,7 @@ class Database
         try {
             // PERBAIKAN: Menggunakan port 3307 sesuai dengan permintaan Anda
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
