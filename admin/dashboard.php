@@ -1,32 +1,32 @@
 ﻿<?php
-session_start();
+session_start();  // WAJIB!
 
-// Database configuration
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website4'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
+    private $db_name = 'medical_website';
     private $username = 'root';
-    private $password = 'root';
+    private $password = '';
     public $conn;
 
     public function getConnection()
     {
         $this->conn = null;
         try {
-            // PERBAIKAN: Menggunakan port 3307 sesuai dengan permintaan Anda
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->db_name,
+                "mysql:host={$this->host};port=3307;dbname={$this->db_name}",
                 $this->username,
                 $this->password
             );
             $this->conn->exec("set names utf8");
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $exception) {
             echo "Connection error: " . $exception->getMessage();
         }
         return $this->conn;
     }
 }
+
 
 // Admin authentication
 function checkAdmin()
