@@ -2,6 +2,24 @@
 include 'config/Koneksi.php';
 include 'includes/header.php';
 
+function getImagePath($filename)
+{
+    if (empty($filename)) {
+        return 'admin/assets/images/default-hospital.jpg';
+    }
+
+    // Bersihkan path yang mungkin sudah tersimpan di database
+    $cleanFilename = str_replace([
+        'assets/images/',
+        '../assets/images/',
+        'admin/assets/images/',
+        '/'
+    ], '', $filename);
+
+    // Return path relatif dari index.php ke folder gambar admin
+    return 'admin/assets/images/' . $cleanFilename;
+}
+
 $database = new Database();
 $db = $database->getConnection();
 
@@ -42,7 +60,7 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dr. Arif Rahman, Sp.PD - Spesialis Penyakit Dalam</title>
     <style>
-         {
+        {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -650,126 +668,133 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             border: 1px solid #ddd;
             padding: 8px;
         }
-           * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-.cta-buttons {
-    display: inline-block;
-    margin-right: 15px;
-    margin-bottom: 10px;
-}
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
 
-.cta-button {
-    display: inline-block;
-    padding: 15px 35px;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    position: relative;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+        .cta-buttons {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
 
-.cta-button.secondary {
-    background: linear-gradient(145deg, #1e3a8a, #3b82f6);
-    color: #ffffff;
-    border: none;
-    box-shadow: 
-        0 8px 15px rgba(30, 58, 138, 0.4),
-        0 4px 6px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -2px 5px rgba(0, 0, 0, 0.2);
-}
+        .cta-button {
+            display: inline-block;
+            padding: 15px 35px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-.cta-button.secondary:hover {
-    background: linear-gradient(145deg, #1e40af, #2563eb);
-    transform: translateY(-4px);
-    box-shadow: 
-        0 12px 25px rgba(37, 99, 235, 0.5),
-        0 8px 10px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        inset 0 -2px 5px rgba(0, 0, 0, 0.25);
-}
+        .cta-button.secondary {
+            background: linear-gradient(145deg, #1e3a8a, #3b82f6);
+            color: #ffffff;
+            border: none;
+            box-shadow:
+                0 8px 15px rgba(30, 58, 138, 0.4),
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
 
-.cta-button.secondary:active {
-    transform: translateY(-1px);
-    box-shadow: 
-        0 4px 10px rgba(30, 58, 138, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.1),
-        inset 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-/* Perbaikan untuk tampilan full dengan jarak yang sesuai */
-body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    overflow-x: hidden !important;
-}
+        .cta-button.secondary:hover {
+            background: linear-gradient(145deg, #1e40af, #2563eb);
+            transform: translateY(-4px);
+            box-shadow:
+                0 12px 25px rgba(37, 99, 235, 0.5),
+                0 8px 10px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.25);
+        }
 
-html {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-}
+        .cta-button.secondary:active {
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 10px rgba(30, 58, 138, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
 
-header, nav {
-    margin: 0 !important;
-    width: 100% !important;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
-}
+        /* Perbaikan untuk tampilan full dengan jarak yang sesuai */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+        }
 
-.container {
-    max-width: 1200px !important;  /* Batasi lebar maksimal */
-    margin: 0 auto !important;      /* Tengah otomatis */
-    padding: 0 20px !important;     /* Jarak kiri-kanan 20px */
-}
+        html {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
 
-/* Hero full tapi konten ada jarak */
-.hero {
-    width: 100% !important;
-    margin: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-}
+        header,
+        nav {
+            margin: 0 !important;
+            width: 100% !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
 
-.hero .container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    padding: 0 40px !important;  /* Jarak lebih besar untuk hero */
-}
+        .container {
+            max-width: 1200px !important;
+            /* Batasi lebar maksimal */
+            margin: 0 auto !important;
+            /* Tengah otomatis */
+            padding: 0 20px !important;
+            /* Jarak kiri-kanan 20px */
+        }
 
-section {
-    width: 100% !important;
-    margin: 0 !important;
-}
+        /* Hero full tapi konten ada jarak */
+        .hero {
+            width: 100% !important;
+            margin: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
 
-/* Untuk section dengan background, biarkan full */
-section.jadwal,
-section.experience,
-section.organisasi {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-}
+        .hero .container {
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+            padding: 0 40px !important;
+            /* Jarak lebih besar untuk hero */
+        }
 
-/* Tapi konten di dalamnya tetap ada jarak */
-section.jadwal .container,
-section.experience .container,
-section.organisasi .container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    padding: 0 40px !important;
-}
+        section {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+
+        /* Untuk section dengan background, biarkan full */
+        section.jadwal,
+        section.experience,
+        section.organisasi {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* Tapi konten di dalamnya tetap ada jarak */
+        section.jadwal .container,
+        section.experience .container,
+        section.organisasi .container {
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+            padding: 0 40px !important;
+        }
     </style>
 </head>
 
@@ -790,12 +815,12 @@ section.organisasi .container {
                     <div class="cta-buttons">
                         <a href="#" class="cta-button secondary">Geriatri</a>
                     </div>
-                     <div class="cta-buttons">
+                    <div class="cta-buttons">
                         <a href="#" class="cta-button secondary">osteoarthritis</a>
                     </div>
-                      <div class="cta-buttons">
+                    <div class="cta-buttons">
                         <a href="#" class="cta-button secondary">Diabetes</a>
-                    </div>            
+                    </div>
                 </div>
                 <div class="hero-image">
                     <div class="doctor-photo">
@@ -843,7 +868,7 @@ section.organisasi .container {
                     <div class="credentials">
                         <h4>Organisasi:</h4>
                         <ul>
-                            <?php 
+                            <?php
                             if (!empty($organisasiList)) {
                                 foreach ($organisasiList as $org) {
                                     echo '<li>• ' . htmlspecialchars($org['nama_organisasi']) . '</li>';
@@ -972,9 +997,9 @@ section.organisasi .container {
                         transition: all 0.3s ease;
                         border-left: 6px solid #fbbf24;
                     "
-                    onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
-                    onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'">
-                        
+                        onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
+                        onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'">
+
                         <div style="
                             min-width: 60px;
                             height: 60px;
@@ -989,7 +1014,7 @@ section.organisasi .container {
                         ">
                             <?= $index + 1 ?>
                         </div>
-                        
+
                         <div style="flex: 1;">
                             <h4 style="
                                 color: #1e3a8a;
@@ -1007,7 +1032,7 @@ section.organisasi .container {
                                 <span style="color: #fbbf24;">✓</span> Anggota Aktif
                             </p>
                         </div>
-                        
+
                         <div style="
                             padding: 0.5rem 1rem;
                             background: rgba(251, 191, 36, 0.1);
@@ -1020,7 +1045,7 @@ section.organisasi .container {
                         </div>
                     </div>
                 <?php endforeach; ?>
-                
+
                 <?php if (empty($organisasiList)): ?>
                     <div style="
                         text-align: center; 
@@ -1049,14 +1074,13 @@ section.organisasi .container {
                 <!-- Card -->
                 <div class="card">
                     <a href="<?= htmlspecialchars($tempat['gmaps_link'] ?? '#') ?>" target="_blank" style="text-decoration:none; color:inherit;">
-                        <?php if (!empty($tempat['gambar'])): ?>
-                            <img src="assets/images/<?= htmlspecialchars(basename($tempat['gambar'])) ?>" 
-                                 alt="<?= htmlspecialchars($tempat['nama_tempat']) ?>"
-                                 onerror="this.src='assets/images/default-hospital.jpg'">
-                        <?php else: ?>
-                            <img src="assets/images/default-hospital.jpg" alt="Default Image">
-                        <?php endif; ?>
-                        
+                        <?php $imagePath = getImagePath($tempat['gambar'] ?? ''); ?>
+
+                        <img src="<?= htmlspecialchars($imagePath) ?>"
+                            alt="<?= htmlspecialchars($tempat['nama_tempat']) ?>"
+                            onerror="this.src='admin/assets/images/default-hospital.jpg'"
+                            style="width:100%; height:180px; object-fit:cover;">
+
                         <div class="card-body">
                             <h3>
                                 <i class="fa-solid fa-location-dot" style="color:#f7c948; margin-right:8px;"></i>
@@ -1068,13 +1092,13 @@ section.organisasi .container {
                             </p>
                         </div>
                     </a>
-                    
+
                     <table>
                         <tr>
                             <th>Hari</th>
                             <th>Waktu</th>
                         </tr>
-                        <?php 
+                        <?php
                         // Parse jadwal yang digabung
                         if (!empty($tempat['jadwal'])) {
                             $jadwalList = explode(';;', $tempat['jadwal']);
@@ -1135,4 +1159,3 @@ section.organisasi .container {
 </body>
 
 </html>
-
