@@ -4,8 +4,8 @@ class Database
     private $host = 'localhost';
     private $db_name = 'medical_website';
     private $username = 'root';
-    private $password = ''; // tetap kosong untuk XAMPP
-    private $password = '';
+    private $password = ''; // kosong untuk XAMPP
+    private $port = '3307';
 
     public $conn;
 
@@ -13,22 +13,18 @@ class Database
     {
         $this->conn = null;
         try {
-            $this->conn = new PDO(
-                "mysql:host={$this->host};port=3307;dbname={$this->db_name}",
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name}";
+            $this->conn = new PDO($dsn, $this->username, $this->password);
 
-                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
-                $this->username,
-                $this->password
-            );
             $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         } catch (PDOException $exception) {
             echo "Connection error: " . $exception->getMessage();
         }
         return $this->conn;
     }
 }
-
 
 // Helper functions
 function sanitizeInput($data)

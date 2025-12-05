@@ -5,25 +5,22 @@ class Database
 {
     private $host = 'localhost';
     private $db_name = 'medical_website';
-
-    private $db_name = 'medical_website'; // Pastikan nama database ini sesuai dengan yang Anda gunakan
     private $username = 'root';
-    private $password = '';
+    private $password = ''; // kosong untuk XAMPP
+    private $port = '3307';
+
     public $conn;
 
     public function getConnection()
     {
         $this->conn = null;
         try {
-            $this->conn = new PDO(
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name}";
+            $this->conn = new PDO($dsn, $this->username, $this->password);
 
-                "mysql:host={$this->host};port=3307;dbname={$this->db_name}",
-                "mysql:host=" . $this->host . ";port=3307;dbname=" . $this->db_name,
-                $this->username,
-                $this->password
-            );
             $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         } catch (PDOException $exception) {
             echo "Connection error: " . $exception->getMessage();
         }
