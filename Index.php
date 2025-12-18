@@ -60,6 +60,7 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dr. Arif Rahman, Sp.PD - Spesialis Penyakit Dalam</title>
     <style>
+        
         {
             margin: 0;
             padding: 0;
@@ -87,7 +88,6 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             font-size: 1.1rem;
             font-weight: 600;
             box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
-            transition: all 0.3s ease;
             border: none;
             cursor: pointer;
         }
@@ -165,42 +165,86 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 1.5rem;
             line-height: 1.7;
         }
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
 
-        .cta-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+.cta-button {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e3a8a;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    transform: none !important;
+}
 
-        .cta-button {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1e3a8a;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
+.cta-button:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
 
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
-        }
+.cta-button.secondary {
+    background: transparent;
+    color: #1e3a8a;
+    border: 2px solid #1e3a8a;
+    width: 200px;
+    height: 150px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+    text-transform: none;
+    letter-spacing: normal;
+}
 
-        .cta-button.secondary {
-            background: transparent;
-            color: #1e3a8a;
-            border: 2px solid #1e3a8a;
-        }
+.button-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
 
-        .cta-button.secondary:hover {
-            background: #1e3a8a;
-            color: white;
-        }
+.button-desc {
+    font-size: 0.75rem;
+    font-weight: normal;
+    line-height: 1.3;
+    opacity: 0.8;
+}
+
+.cta-button.secondary:hover {
+    background: #1e3a8a;
+    color: white;
+    transform: none !important;
+}
+
+.cta-button.secondary:hover .button-desc {
+    opacity: 1;
+}
+
+/* Judul */
+.cta-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
+
+/* Deskripsi */
+.cta-desc {
+    font-size: 0.75rem;
+    font-weight: normal;
+    line-height: 1.4;
+    color: #1e3a8a;
+}
 
         .hero-image {
             background: white;
@@ -232,25 +276,37 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             transform: translateY(10px) translateX(-20px);
         }
 
-        .quick-info {
-            background: #f8fafc;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-        }
+       .quick-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    border-radius: 10px;
+}
 
-        .quick-info h4 {
-            color: #1e3a8a;
-            margin-bottom: 1rem;
-        }
+.quick-info h4 {
+    margin-bottom: 10px;
+    font-weight: 600;
+}
 
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            color: #64748b;
-        }
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.info-item i {
+    font-size: 16px;
+    min-width: 22px;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.info-item span {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
 
         /* Doctor Profile Section */
         .doctor-profile {
@@ -312,19 +368,18 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 10px;
             margin: 1.5rem 0;
         }
-
-        .credentials h4 {
-            color: #fbbf24;
-            margin-bottom: 0.5rem;
-        }
-
         .credentials ul {
             list-style: none;
-            font-size: 0.9rem;
+            padding: 0;
+            margin: 0;
         }
 
         .credentials li {
-            margin-bottom: 0.3rem;
+            padding-left: 1.2rem;      /* jarak teks dari bullet */
+            text-indent: -1.2rem;      /* tarik bullet ke kiri */
+            line-height: 1.6;
+            margin-bottom: 0.4rem;
+            text-align: left;
         }
 
         .profile-info {
@@ -813,33 +868,46 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
                         Dengan berbagai pelatihan nasional maupun internasional, serta fellowship di bidang nutrisi, olahraga klinis, dan mutu layanan kesehatan, Dr. Arif Rahman berkomitmen memberikan layanan kesehatan yang komprehensif, personal, dan berstandar tinggi bagi masyarakat.
                     </p>
                     <div class="cta-buttons">
-                        <a href="#" class="cta-button secondary">Geriatri</a>
-                    </div>
-                    <div class="cta-buttons">
-                        <a href="#" class="cta-button secondary">osteoarthritis</a>
-                    </div>
-                    <div class="cta-buttons">
-                        <a href="#" class="cta-button secondary">Diabetes</a>
-                    </div>
+    <a href="#" class="cta-button secondary">
+        <span class="button-title">Geriatri</span>
+        <span class="button-desc">Layanan kesehatan khusus untuk lansia</span>
+    </a>
+</div>
+<div class="cta-buttons">
+    <a href="#" class="cta-button secondary">
+        <span class="button-title">Osteoarthritis</span>
+        <span class="button-desc">Perawatan nyeri sendi dan tulang</span>
+    </a>
+</div>
+<div class="cta-buttons">
+    <a href="#" class="cta-button secondary">
+        <span class="button-title">Diabetes</span>
+        <span class="button-desc">Pengelolaan gula darah terpadu</span>
+    </a>
+</div>
                 </div>
                 <div class="hero-image">
                     <div class="doctor-photo">
                         <img src="assets/images/dokter-removebg-preview.png" alt="Foto Dokter" />
                     </div>
-                    <div class="quick-info">
-                        <h4>Informasi Singkat</h4>
-                        <div class="info-item">
-                            <span>👨‍⚕️</span>
-                            <span>dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua</span>
-                        </div>
-                        <div class="info-item">
-                            <span>💉</span>
-                            <span>Spesialis Penyakit Dalam & Terapi Regeneratif</span>
-                        </div>
-                        <div class="info-item">
-                            <span>⏳</span>
-                            <span>10+ Tahun Pengalaman</span>
-                        </div>
+                  <div class="quick-info">
+                  <h4>Informasi Singkat</h4>
+                <div class="info-item">
+                    <i class="fas fa-user-md"></i>
+                    <span>dr. Arif Rahman, Sp.PD, FINASIM, FINEM, AIFO-K, FISQua</span>
+                </div>
+
+                <div class="info-item">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>Spesialis Penyakit Dalam & Terapi Regeneratif</span>
+                </div>
+
+                <div class="info-item">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>10+ Tahun Pengalaman</span>
+                </div>
+            </div>
+
                     </div>
                 </div>
             </div>
@@ -860,8 +928,8 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
                     <div class="credentials">
                         <h4>Pendidikan:</h4>
                         <ul>
-                            <li>• Pendidikan Kedokteran – Universitas Sebelas Maret (UNS) Surakarta</li>
-                            <li>• Spesialis Penyakit Dalam – Universitas Diponegoro Semarang</li>
+                            <li>• Pendidikan Kedokteran Universitas Sebelas Maret (UNS) Surakarta</li>
+                            <li>• Spesialis Penyakit Dalam Universitas Diponegoro Semarang</li>
                         </ul>
                     </div>
 
@@ -997,8 +1065,7 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
                         transition: all 0.3s ease;
                         border-left: 6px solid #fbbf24;
                     "
-                        onmouseover="this.style.transform='translateX(10px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
-                        onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'">
+                        style="box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
 
                         <div style="
                             min-width: 60px;
@@ -1031,17 +1098,6 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
                             ">
                                 <span style="color: #fbbf24;">✓</span> Anggota Aktif
                             </p>
-                        </div>
-
-                        <div style="
-                            padding: 0.5rem 1rem;
-                            background: rgba(251, 191, 36, 0.1);
-                            border-radius: 20px;
-                            color: #1e3a8a;
-                            font-size: 0.9rem;
-                            font-weight: 600;
-                        ">
-                            Member
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -1157,5 +1213,4 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
     <?php include 'includes/footer.php'; ?>
 
 </body>
-
 </html>
