@@ -211,10 +211,12 @@ $home_category_icons = [
 
         .search-box {
             width: 100%;
-            padding: 1.25rem 1.5rem 1.25rem 4rem;
+            padding: 1.25rem 1.5rem 1.25rem 5rem;
             border-radius: 50px;
-            border: 2px solid #e5e7eb;
+            border: 2px solid;
+            border-color: #1e40af;
             font-size: 1.05rem;
+            color: #1e40af;
             transition: all 0.3s ease;
             background: #f9fafb;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -224,6 +226,9 @@ $home_category_icons = [
             outline: none;
             border-color: #fbbf24;
             background: white;
+            font-size: 1.05rem;
+            padding: 1.25rem 1.5rem 1.25rem 5rem;
+            color: #1e40af;
             box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
         }
 
@@ -442,7 +447,7 @@ $home_category_icons = [
 
             .search-box {
                 font-size: 1rem;
-                padding: 1rem 1rem 1rem 3.5rem;
+                padding: 1rem 1rem 1rem 4.5rem;
             }
 
             .search-icon {
@@ -480,11 +485,6 @@ $home_category_icons = [
 
     <div class="main-container">
         <div class="content-area">
-            <!-- Tombol Kembali -->
-            <button class="back-btn" onclick="window.location.href='../Penyakit/penyakit_home.php'">
-                <i class="fas fa-arrow-left"></i>
-                Kembali ke Beranda
-            </button>
 
             <!-- Header Kategori -->
             <div class="page-header">

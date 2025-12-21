@@ -5,9 +5,9 @@ session_start();
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website4';
+    private $db_name = 'medical-website';
     private $username = 'root';
-    private $password = 'root';
+    private $password = 'password';
     public $conn;
 
     public function getConnection()
