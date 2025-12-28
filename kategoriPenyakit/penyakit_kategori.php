@@ -213,14 +213,23 @@ $home_category_icons = [
             width: 100%;
             padding: 1.25rem 1.5rem 1.25rem 5rem;
             border-radius: 50px;
-            border: 2px solid;
-            border-color: #1e40af;
+
+            border: none;
+            background: #ffffff;
+
+            /* INSET BORDER */
+            box-shadow:
+                inset 0 0 0 2px #3b82f6,
+                0 2px 8px rgba(0, 0, 0, 0.05);
+
             font-size: 1.05rem;
             color: #1e40af;
-            transition: all 0.3s ease;
-            background: #f9fafb;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+            transition: box-shadow 0.25s ease;
         }
+
+
+
 
         .search-box:focus {
             outline: none;
@@ -597,13 +606,13 @@ $home_category_icons = [
 
         searchBox.addEventListener('input', performSearch);
 
-        clearSearch.addEventListener('click', function () {
+        clearSearch.addEventListener('click', function() {
             searchBox.value = '';
             performSearch();
             searchBox.focus();
         });
 
-        searchBox.addEventListener('keydown', function (e) {
+        searchBox.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 searchBox.value = '';
                 performSearch();
