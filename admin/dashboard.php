@@ -20,7 +20,6 @@ class Database
 
             $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
         } catch (PDOException $exception) {
             echo "Connection error: " . $exception->getMessage();
         }
@@ -46,7 +45,8 @@ $database = new Database();
 $db = $database->getConnection();
 
 // --- FUNGSI HELPER BARU UNTUK PATH GAMBAR ---
-function getCleanedImagePath($filename) {
+function getCleanedImagePath($filename)
+{
     if (empty($filename)) return '';
     // Menghapus 'assets/images/', '../assets/images/', dll. yang mungkin sudah tersimpan di database
     $cleanedFilename = str_replace(['assets/images/', '../assets/images/', '/'], '', $filename);
@@ -170,10 +170,69 @@ function handleEdit($db, $table, $data)
             break;
 
         case 'penyakit':
-            // UPDATE: kategori_id sekarang merujuk ke ID dari kategori_organ_home
-            $stmt = $db->prepare("UPDATE penyakit SET kategori_id=?, nama=?, deskripsi_singkat=?, penyebab_utama=?, gejala=?, bahaya=?, cara_mencegah=?, cara_mengurangi=?, status=? WHERE id=?");
+            // ============================================
+            // PERUBAHAN: Handle edit dengan multiple images
+            // ============================================
+
+            // Ambil gambar lama dari database
+            $stmtOld = $db->prepare("SELECT gambar FROM penyakit WHERE id=?");
+            $stmtOld->execute([$data['id']]);
+            $oldData = $stmtOld->fetch(PDO::FETCH_ASSOC);
+            $oldImages = !empty($oldData['gambar']) ? explode('|', $oldData['gambar']) : [];
+
+            // Hapus gambar yang dipilih untuk dihapus
+            if (isset($data['hapus_gambar']) && is_array($data['hapus_gambar'])) {
+                foreach ($data['hapus_gambar'] as $imgToDelete) {
+                    $filePath = __DIR__ . "/assets/images/penyakit/" . $imgToDelete;
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                    // Remove from array
+                    $oldImages = array_diff($oldImages, [$imgToDelete]);
+                }
+            }
+
+            // Upload gambar baru
+            $newImages = [];
+            if (isset($_FILES['gambar_penyakit']) && !empty($_FILES['gambar_penyakit']['name'][0])) {
+                $targetDir = __DIR__ . "/assets/images/penyakit/";
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0777, true);
+                }
+
+                foreach ($_FILES['gambar_penyakit']['tmp_name'] as $key => $tmp_name) {
+                    if ($_FILES['gambar_penyakit']['error'][$key] != 0) {
+                        continue;
+                    }
+
+                    // Validasi ukuran (max 5MB)
+                    if ($_FILES['gambar_penyakit']['size'][$key] > 5242880) {
+                        continue;
+                    }
+
+                    $ext = pathinfo($_FILES['gambar_penyakit']['name'][$key], PATHINFO_EXTENSION);
+                    $fileName = time() . "_" . ($key + 1) . "_" . uniqid() . "." . $ext;
+                    $targetFilePath = $targetDir . $fileName;
+
+                    if (move_uploaded_file($tmp_name, $targetFilePath)) {
+                        $newImages[] = $fileName;
+                    }
+
+                    // Limit total 3 gambar
+                    if ((count($oldImages) + count($newImages)) >= 3) {
+                        break;
+                    }
+                }
+            }
+
+            // Gabungkan gambar lama dan baru
+            $allImages = array_merge($oldImages, $newImages);
+            $gambarString = implode('|', $allImages);
+
+            // UPDATE dengan gambar
+            $stmt = $db->prepare("UPDATE penyakit SET kategori_id=?, nama=?, deskripsi_singkat=?, penyebab_utama=?, gejala=?, bahaya=?, cara_mencegah=?, cara_mengurangi=?, gambar=?, status=? WHERE id=?");
             $stmt->execute([
-                $data['kategori_id'], // ID dari kategori_organ_home
+                $data['kategori_id'],
                 $data['nama'],
                 $data['deskripsi_singkat'],
                 $data['penyebab_utama'],
@@ -181,6 +240,7 @@ function handleEdit($db, $table, $data)
                 $data['bahaya'],
                 $data['cara_mencegah'],
                 $data['cara_mengurangi'],
+                $gambarString,
                 $data['status'],
                 $data['id']
             ]);
@@ -248,10 +308,51 @@ function handleAdd($db, $table, $data)
             break;
 
         case 'penyakit':
-            // INSERT: kategori_id sekarang merujuk ke ID dari kategori_organ
-            $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            // ============================================
+            // PERUBAHAN: Handle multiple images upload
+            // ============================================
+            $uploadedImages = [];
+
+            if (isset($_FILES['gambar_penyakit']) && !empty($_FILES['gambar_penyakit']['name'][0])) {
+                $targetDir = __DIR__ . "/assets/images/penyakit/";
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0777, true);
+                }
+
+                foreach ($_FILES['gambar_penyakit']['tmp_name'] as $key => $tmp_name) {
+                    // Skip jika ada error atau file kosong
+                    if ($_FILES['gambar_penyakit']['error'][$key] != 0) {
+                        continue;
+                    }
+
+                    // Validasi ukuran file (max 5MB)
+                    if ($_FILES['gambar_penyakit']['size'][$key] > 5242880) {
+                        continue; // Skip file lebih dari 5MB
+                    }
+
+                    // Generate nama file unik
+                    $ext = pathinfo($_FILES['gambar_penyakit']['name'][$key], PATHINFO_EXTENSION);
+                    $fileName = time() . "_" . ($key + 1) . "_" . uniqid() . "." . $ext;
+                    $targetFilePath = $targetDir . $fileName;
+
+                    if (move_uploaded_file($tmp_name, $targetFilePath)) {
+                        $uploadedImages[] = $fileName;
+                    }
+
+                    // Limit 3 gambar
+                    if (count($uploadedImages) >= 3) {
+                        break;
+                    }
+                }
+            }
+
+            // Gabungkan nama file dengan separator |
+            $gambarString = implode('|', $uploadedImages);
+
+            // INSERT dengan gambar
+            $stmt = $db->prepare("INSERT INTO penyakit (kategori_id, nama, deskripsi_singkat, penyebab_utama, gejala, bahaya, cara_mencegah, cara_mengurangi, gambar, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                $data['kategori_id'], // ID dari kategori_organ
+                $data['kategori_id'],
                 $data['nama'],
                 $data['deskripsi_singkat'] ?? '',
                 $data['penyebab_utama'] ?? '',
@@ -259,6 +360,7 @@ function handleAdd($db, $table, $data)
                 $data['bahaya'] ?? '',
                 $data['cara_mencegah'] ?? '',
                 $data['cara_mengurangi'] ?? '',
+                $gambarString, // Simpan string gambar
                 $data['status'] ?? 'aktif'
             ]);
             break;
@@ -617,8 +719,27 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                         </button>
                     </div>
                     <div class="card-body">
+                        <!-- ============================================ -->
+                        <!-- TAMBAHAN: Search Box untuk Penyakit -->
+                        <!-- ============================================ -->
+                        <?php if ($currentTable == 'penyakit'): ?>
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text"
+                                        class="form-control"
+                                        id="searchPenyakit"
+                                        placeholder="Cari nama penyakit..."
+                                        onkeyup="searchPenyakitTable()">
+                                </div>
+                                <small class="text-muted">Ketik nama penyakit untuk mencari data</small>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover table-jadwal-praktek">
+                            <table class="table table-striped table-hover table-jadwal-praktek" id="tablePenyakit">
                                 <thead class="table-dark">
                                     <?php renderTableHeader($currentTable); ?>
                                 </thead>
@@ -687,10 +808,10 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
         // PENTING: Anda harus memastikan fungsi getCleanedImagePath() tersedia di scope ini (di luar script tag)
         // Di sini saya mendefinisikan ulang fungsi PHP helper dalam JavaScript sebagai utility lokal
         function getAdminImagePathJS(filename) {
-             if (!filename) return '';
-             // Bersihkan path yang mungkin ada dan tambahkan prefix 'assets/images/'
-             let cleaned = filename.replace(/assets\/images\/|\.\.\/assets\/images\/|\//g, '');
-             return `assets/images/${cleaned}`;
+            if (!filename) return '';
+            // Bersihkan path yang mungkin ada dan tambahkan prefix 'assets/images/'
+            let cleaned = filename.replace(/assets\/images\/|\.\.\/assets\/images\/|\//g, '');
+            return `assets/images/${cleaned}`;
         }
 
 
@@ -803,7 +924,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             <?php if ($currentTable == 'kategori_penyakit'): ?>
                 // PERBAIKAN JS: Menggunakan fungsi helper untuk path gambar
                 const imagePathKategori = getAdminImagePathJS(data.gambar);
-                
+
                 html = `
                 <div class="row">
                     <div class="col-md-6">
@@ -840,10 +961,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
 
             <?php if ($currentTable == 'penyakit'): ?>
-                // Ambil data kategori home/penyakit dari PHP
                 const categories = <?php echo json_encode($categories); ?>;
-
-                // Buat options untuk select
                 let categoryOptions = '<option value="">-- Pilih Kategori Penyakit --</option>';
 
                 categories.forEach(cat => {
@@ -852,64 +970,117 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 });
 
                 html = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Kategori Penyakit</label>
-                            <select class="form-select" name="kategori_id" required>
-                                ${categoryOptions}
-                            </select>
-                            <small class="text-muted">Pilih kategori penyakit dari daftar yang tersedia</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nama Penyakit</label>
-                            <input type="text" class="form-control" name="nama" value="${data.nama}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" name="status">
-                                <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
-                                <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Deskripsi Singkat</label>
-                            <textarea class="form-control" name="deskripsi_singkat" rows="3">${data.deskripsi_singkat || ''}</textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Penyebab Utama</label>
-                            <textarea class="form-control" name="penyebab_utama" rows="4">${data.penyebab_utama || ''}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Gejala</label>
-                            <textarea class="form-control" name="gejala" rows="4">${data.gejala || ''}</textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Bahaya</label>
-                            <textarea class="form-control" name="bahaya" rows="4">${data.bahaya || ''}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cara Mencegah</label>
-                            <textarea class="form-control" name="cara_mencegah" rows="4">${data.cara_mencegah || ''}</textarea>
-                        </div>
-                    </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Kategori Penyakit</label>
+                    <select class="form-select" name="kategori_id" required>
+                        ${categoryOptions}
+                    </select>
+                    <small class="text-muted">Pilih kategori penyakit dari daftar yang tersedia</small>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Cara Mengurangi</label>
-                    <textarea class="form-control" name="cara_mengurangi" rows="4">${data.cara_mengurangi || ''}</textarea>
+                    <label class="form-label">Nama Penyakit</label>
+                    <input type="text" class="form-control" name="nama" value="${data.nama}" required>
                 </div>
-            `;
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="aktif" ${data.status == 'aktif' ? 'selected' : ''}>Aktif</option>
+                        <option value="nonaktif" ${data.status == 'nonaktif' ? 'selected' : ''}>Non Aktif</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Deskripsi Singkat</label>
+                    <textarea class="form-control" name="deskripsi_singkat" rows="3">${data.deskripsi_singkat || ''}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Penyebab Utama</label>
+                    <textarea class="form-control" name="penyebab_utama" rows="4">${data.penyebab_utama || ''}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Gejala</label>
+                    <textarea class="form-control" name="gejala" rows="4">${data.gejala || ''}</textarea>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Bahaya</label>
+                    <textarea class="form-control" name="bahaya" rows="4">${data.bahaya || ''}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Cara Mencegah</label>
+                    <textarea class="form-control" name="cara_mencegah" rows="4">${data.cara_mencegah || ''}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Cara Mengurangi</label>
+            <textarea class="form-control" name="cara_mengurangi" rows="4">${data.cara_mengurangi || ''}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="fas fa-images me-2"></i>Gambar yang Sudah Ada
+            </label>
+            ${generateExistingImagesHTML(data.gambar)}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">
+                <i class="fas fa-plus-circle me-2"></i>Tambah Gambar Baru (Opsional)
+            </label>
+            <input type="file" 
+                   class="form-control" 
+                   name="gambar_penyakit[]" 
+                   multiple 
+                   accept="image/*"
+                   onchange="previewMultipleImages(this)">
+            <small class="text-muted">Maksimal 3 gambar total, ukuran per file maksimal 5MB</small>
+            <div id="image-preview-container" class="mt-3" style="display:none;">
+                <div class="row g-3" id="image-preview-row"></div>
+            </div>
+        </div>
+    `;
             <?php endif; ?>
 
+            return html; // <-- INI YANG TADINYA HILANG!
+        }
 
+        function generateExistingImagesHTML(gambarString) {
+            if (!gambarString) return '<p class="text-muted">Belum ada gambar</p>';
+
+            const images = gambarString.split('|').filter(img => img.trim() !== '');
+            if (images.length === 0) return '<p class="text-muted">Belum ada gambar</p>';
+
+            let html = '<div class="row g-3">';
+            images.forEach((img, index) => {
+                const cleanImg = img.trim();
+                html += `
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="assets/images/penyakit/${cleanImg}" 
+                         class="card-img-top" 
+                         style="height:150px;object-fit:cover;"
+                         onerror="this.parentElement.innerHTML='<div class=\\'text-center p-3\\'><i class=\\'fas fa-image-slash text-muted\\'></i><br><small>Gambar tidak ditemukan</small></div>'">
+                    <div class="card-body text-center p-2">
+                        <small class="text-muted d-block mb-2">Gambar ${index + 1}</small>
+                        <label class="text-danger" style="cursor:pointer;">
+                            <input type="checkbox" name="hapus_gambar[]" value="${cleanImg}" class="me-1">
+                            <i class="fas fa-trash"></i> Hapus
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+            });
+            html += '</div>';
             return html;
         }
 
@@ -1001,18 +1172,18 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Ambil data kategori saat halaman load
         const categoriesData = <?php echo json_encode($categories); ?>;
-        
+
         // Fungsi untuk populate kategori di form add
         function populateCategoriesInAddModal() {
             const addModal = document.getElementById('addModal');
             const select = addModal.querySelector('select[name="kategori_id"]');
-            
+
             if (select && categoriesData.length > 0) {
                 // Clear existing options kecuali placeholder
                 while (select.options.length > 1) {
                     select.remove(1);
                 }
-                
+
                 // Tambah kategori dari data
                 categoriesData.forEach(cat => {
                     const option = document.createElement('option');
@@ -1022,11 +1193,110 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 });
             }
         }
-        
+
         // Jalankan saat modal add dibuka
         document.getElementById('addModal').addEventListener('show.bs.modal', function() {
             populateCategoriesInAddModal();
         });
+        // ============================================
+        // FUNGSI SEARCH UNTUK TABEL PENYAKIT
+        // ============================================
+        function searchPenyakitTable() {
+            const input = document.getElementById('searchPenyakit');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('tablePenyakit');
+            const tr = table.getElementsByTagName('tr');
+
+            let visibleCount = 0;
+
+            // Loop semua baris tabel (skip header)
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td');
+
+                // Kolom nama penyakit sekarang di index 1 (karena ID dihapus)
+                // Index 0 = Kategori Penyakit
+                // Index 1 = Nama
+                // Index 2 = Deskripsi
+                const namaPenyakit = td[1] ? td[1].textContent || td[1].innerText : '';
+
+                if (namaPenyakit.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = '';
+                    visibleCount++;
+                } else {
+                    tr[i].style.display = 'none';
+                }
+            }
+
+            // Optional: Tampilkan pesan jika tidak ada hasil
+            if (visibleCount === 0 && filter !== '') {
+                console.log('Tidak ada hasil untuk: ' + filter);
+            }
+        }
+        // ============================================
+        // FUNGSI PREVIEW MULTIPLE IMAGES
+        // ============================================
+        function previewMultipleImages(input) {
+            const container = document.getElementById('image-preview-container');
+            const row = document.getElementById('image-preview-row');
+
+            if (!container || !row) return;
+
+            row.innerHTML = ''; // Clear previous
+
+            if (input.files && input.files.length > 0) {
+                container.style.display = 'block';
+
+                // Limit to 3 images
+                const maxFiles = Math.min(input.files.length, 3);
+                let validFiles = 0;
+
+                for (let i = 0; i < input.files.length; i++) {
+                    if (validFiles >= 3) break;
+
+                    const file = input.files[i];
+
+                    // Check file size (5MB = 5242880 bytes)
+                    if (file.size > 5242880) {
+                        alert(`File "${file.name}" terlalu besar. Maksimal 5MB per file.`);
+                        continue;
+                    }
+
+                    // Check file type
+                    if (!file.type.match('image.*')) {
+                        alert(`File "${file.name}" bukan gambar.`);
+                        continue;
+                    }
+
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4';
+                        col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" 
+                             class="card-img-top" 
+                             style="height:150px;object-fit:cover;">
+                        <div class="card-body text-center p-2">
+                            <small class="text-muted text-truncate d-block">${file.name}</small>
+                            <small class="text-info">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                        </div>
+                    </div>
+                `;
+                        row.appendChild(col);
+                    };
+
+                    reader.readAsDataURL(file);
+                    validFiles++;
+                }
+
+                if (input.files.length > 3) {
+                    alert('⚠️ Maksimal 3 gambar. Gambar ke-4 dan seterusnya tidak akan diupload.');
+                }
+            } else {
+                container.style.display = 'none';
+            }
+        }
     </script>
 
     <?php
@@ -1063,10 +1333,10 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             case 'penyakit':
                 // Label diubah menjadi Kategori Penyakit
                 echo '<tr>
-                <th>ID</th>
                 <th>Kategori Penyakit</th>
                 <th>Nama</th>
                 <th>Deskripsi</th>
+                <th>Gambar</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>';
@@ -1211,9 +1481,7 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 break;
 
             case 'penyakit':
-                echo '<td>' . $row['id'] . '</td>';
-
-                // Tampilkan nama Kategori Penyakit (dari kategori_organ_home)
+                // Tampilkan nama Kategori Penyakit
                 echo '<td>';
                 if (!empty($row['kategori_penyakit_nama'])) {
                     echo '<span class="badge bg-primary">' . htmlspecialchars($row['kategori_penyakit_nama']) . '</span>';
@@ -1222,10 +1490,51 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                 }
                 echo '</td>';
 
-                echo '<td>' . htmlspecialchars($row['nama']) . '</td>';
-                echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
-                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
+                // Nama penyakit dengan badge jumlah gambar
+                echo '<td>' . htmlspecialchars($row['nama']);
+                if (!empty($row['gambar'])) {
+                    $imageCount = count(array_filter(explode('|', $row['gambar'])));
+                    if ($imageCount > 0) {
+                        echo ' <span class="badge bg-info ms-2" title="' . $imageCount . ' gambar">
+                    <i class="fas fa-images me-1"></i>' . $imageCount . '
+                  </span>';
+                    }
+                }
+                echo '</td>';
 
+                echo '<td>' . htmlspecialchars(substr($row['deskripsi_singkat'] ?? '', 0, 50)) . '...</td>';
+
+                // ============================================
+                // TAMBAHAN: Preview Gambar
+                // ============================================
+                echo '<td>';
+                if (!empty($row['gambar'])) {
+                    $images = array_filter(explode('|', $row['gambar']));
+                    if (count($images) > 0) {
+                        echo '<div style="display: flex; gap: 5px;">';
+                        $maxDisplay = min(count($images), 3);
+                        for ($i = 0; $i < $maxDisplay; $i++) {
+                            $imgFile = trim($images[$i]);
+                            $imgPath = 'assets/images/penyakit/' . basename($imgFile);
+                            echo '<img src="' . htmlspecialchars($imgPath) . '" 
+                          style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;"
+                          onclick="window.open(this.src, \'_blank\')"
+                          onerror="this.style.display=\'none\'"
+                          title="Klik untuk zoom">';
+                        }
+                        if (count($images) > 3) {
+                            echo '<span class="badge bg-secondary align-self-center">+' . (count($images) - 3) . '</span>';
+                        }
+                        echo '</div>';
+                    } else {
+                        echo '<span class="text-muted">-</span>';
+                    }
+                } else {
+                    echo '<span class="text-muted">-</span>';
+                }
+                echo '</td>';
+
+                echo '<td><span class="badge bg-' . ($row['status'] == 'aktif' ? 'success' : 'secondary') . '">' . $row['status'] . '</span></td>';
                 echo '<td>';
                 echo '<button class="btn btn-sm btn-warning me-2" 
                 onclick="editData(' . $row['id'] . ', null, ' . htmlspecialchars(json_encode($row)) . ')">
@@ -1360,20 +1669,20 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="mb-3">
                         <label class="form-label">Kategori Penyakit</label>
                         <select class="form-select" name="kategori_id" required>';
-    
-    echo '<option value="">-- Pilih Kategori Penyakit --</option>';
-    
-    // Pastikan $categories sudah terisi dengan data
-    if (!empty($categories)) {
-        foreach ($categories as $cat) {
-            $selected = ($isEdit && isset($data['kategori_id']) && $data['kategori_id'] == $cat['id']) ? 'selected' : '';
-            echo '<option value="' . htmlspecialchars($cat['id']) . '" ' . $selected . '>' . htmlspecialchars($cat['nama']) . '</option>';
-        }
-    } else {
-        echo '<option value="">Tidak ada kategori tersedia</option>';
-    }
-    
-    echo '</select>
+
+                echo '<option value="">-- Pilih Kategori Penyakit --</option>';
+
+                // Pastikan $categories sudah terisi dengan data
+                if (!empty($categories)) {
+                    foreach ($categories as $cat) {
+                        $selected = ($isEdit && isset($data['kategori_id']) && $data['kategori_id'] == $cat['id']) ? 'selected' : '';
+                        echo '<option value="' . htmlspecialchars($cat['id']) . '" ' . $selected . '>' . htmlspecialchars($cat['nama']) . '</option>';
+                    }
+                } else {
+                    echo '<option value="">Tidak ada kategori tersedia</option>';
+                }
+
+                echo '</select>
                     <small class="text-muted">Pilih kategori penyakit dari daftar yang tersedia</small>
                 </div>
                 <div class="mb-3">
@@ -1418,11 +1727,33 @@ $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Cara Mengurangi</label>
-            <textarea class="form-control" name="cara_mengurangi" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mengurangi']) : '') . '</textarea>
-        </div>';
+    <label class="form-label">Cara Mengurangi</label>
+    <textarea class="form-control" name="cara_mengurangi" rows="4">' . ($isEdit ? htmlspecialchars($data['cara_mengurangi']) : '') . '</textarea>
+</div>
+
+<!-- ============================================ -->
+<!-- TAMBAHAN: Multiple Image Upload -->
+<!-- ============================================ -->
+<div class="mb-3">
+    <label class="form-label">
+        <i class="fas fa-images me-2"></i>Gambar Edukasi Penyakit (Opsional)
+    </label>
+    <input type="file" 
+           class="form-control" 
+           name="gambar_penyakit[]" 
+           multiple 
+           accept="image/*"
+           id="gambar_penyakit_input"
+           onchange="previewMultipleImages(this)">
+    <small class="text-muted">
+        <i class="fas fa-info-circle me-1"></i>
+        Maksimal 3 gambar, ukuran per file maksimal 5MB (JPG, PNG, WEBP)
+    </small>
+    <div id="image-preview-container" class="mt-3" style="display:none;">
+        <div class="row g-3" id="image-preview-row"></div>
+    </div>
+</div>';
                 break;
         }
     }
     ?>
-
