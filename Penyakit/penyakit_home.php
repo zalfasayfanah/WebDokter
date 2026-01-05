@@ -140,6 +140,24 @@ $stmt->execute();
         .search-bar input:focus + .icon {
             transform: rotate(20deg) scale(1.1);
         }
+        /* ===== KECILKAN SEARCH DI HP ===== */
+@media (max-width: 600px) {
+    .search-bar {
+        max-width: 90%;
+        margin-top: 1.5rem;
+    }
+
+    .search-bar input {
+        padding: 0.7rem 2.8rem 0.7rem 1.2rem;
+        font-size: 0.7rem;
+        border-width: 1.5px;
+    }
+
+    .search-bar .icon {
+        font-size: 1.1rem;
+        right: 0.8rem;
+    }
+}
 
         /* === CARD SECTION === */
         .card-container {
@@ -211,6 +229,32 @@ $stmt->execute();
                 font-size: 1rem;
             }
         }
+       /* ===== CARD HORIZONTAL KHUSUS HP ===== */
+@media (max-width: 768px) {
+    .card-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 1rem;
+        padding: 1.5rem 1rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .card {
+        flex: 0 0 80%;
+        max-width: 80%;
+        scroll-snap-align: center;
+    }
+
+    .card img {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+
     </style>
 </head>
 <body>

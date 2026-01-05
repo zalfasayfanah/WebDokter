@@ -850,6 +850,691 @@ $organisasiList = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
             margin: 0 auto !important;
             padding: 0 40px !important;
         }
+        
+        /* ============================================
+   RESPONSIVE MOBILE - GANTI @media YANG LAMA
+   ============================================ */
+
+/* Hapus @media (max-width: 768px) dan @media (max-width: 480px) yang lama,
+   lalu ganti dengan kode di bawah ini */
+
+@media (max-width: 768px) {
+    /* Reset Container */
+    .container {
+        padding: 0 15px !important;
+        width: 100% !important;
+    }
+
+    /* Navigation */
+    .doctor-name {
+        font-size: 0.85rem;
+        padding: 8px 16px;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .mobile-menu {
+        display: block;
+    }
+
+    /* Hero Section */
+    .hero {
+        padding: 2rem 0 1.5rem !important;
+    }
+
+    .hero .container {
+        padding: 0 20px !important;
+    }
+
+    .hero-content {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+    }
+
+    .hero-text {
+        text-align: center;
+    }
+
+    .hero-text h1 {
+        font-size: 1.8rem !important;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.05rem !important;
+        margin-bottom: 1rem;
+    }
+
+    .hero-text p {
+        font-size: 0.9rem !important;
+        line-height: 1.6;
+        text-align: justify;
+    }
+
+    /* CTA Buttons Mobile */
+    .cta-buttons {
+        justify-content: center;
+        width: 100%;
+        gap: 0.8rem;
+    }
+
+    .cta-button.secondary {
+        width: calc(50% - 0.5rem) !important;
+        min-width: 140px;
+        height: auto !important;
+        min-height: 100px;
+        padding: 0.8rem !important;
+    }
+
+    .button-title {
+        font-size: 0.95rem !important;
+    }
+
+    .button-desc {
+        font-size: 0.68rem !important;
+        line-height: 1.2;
+    }
+
+    /* Hero Image Card */
+    .hero-image {
+        padding: 1.5rem;
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    .doctor-photo {
+        width: 170px !important;
+        height: 170px !important;
+        margin: 0 auto 1.2rem;
+    }
+
+    .doctor-photo img {
+        transform: translateY(8px) translateX(-15px);
+    }
+
+    .quick-info {
+        padding: 14px;
+    }
+
+    .quick-info h4 {
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+    }
+
+    .info-item {
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .info-item i {
+        font-size: 14px;
+        min-width: 20px;
+    }
+
+    .info-item span {
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    /* Doctor Profile Section */
+    .doctor-profile {
+        padding: 2.5rem 0 !important;
+    }
+
+    .profile-content {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+    }
+
+    .profile-card {
+        padding: 1.5rem;
+        margin: 0 auto;
+        max-width: 100%;
+    }
+
+    .profile-photo {
+        width: 130px !important;
+        height: 130px !important;
+    }
+
+    .profile-photo img {
+        transform: translateY(8px) translateX(-14px);
+    }
+
+    .profile-card h3 {
+        font-size: 1.3rem;
+    }
+
+    .profile-card .specialty {
+        font-size: 0.95rem;
+    }
+
+    .credentials {
+        padding: 1rem;
+        margin: 1.2rem 0;
+    }
+
+    .credentials h4 {
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+    }
+
+    .credentials li {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        padding-left: 1rem;
+        text-indent: -1rem;
+    }
+
+    /* Profile Info */
+    .profile-info {
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.8rem !important;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .about-text {
+        font-size: 0.9rem !important;
+        line-height: 1.65;
+        text-align: justify;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-info h3 {
+        font-size: 1.2rem !important;
+        text-align: center;
+    }
+
+    /* Specializations */
+    .specializations {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .specialization-card {
+        padding: 1.2rem;
+    }
+
+    .specialization-card h4 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .specialization-card p {
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    /* Experience Timeline */
+    .experience {
+        padding: 2.5rem 0 !important;
+    }
+
+    .experience .container {
+        padding: 0 20px !important;
+    }
+
+    .experience-timeline {
+        padding: 0;
+    }
+
+    .timeline-line {
+        display: none;
+    }
+
+    .timeline-item {
+        flex-direction: column;
+        margin-bottom: 2rem;
+        align-items: flex-start;
+    }
+
+    .timeline-marker {
+        width: 55px !important;
+        height: 55px !important;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        align-self: flex-start;
+    }
+
+    .timeline-content {
+        margin-left: 0 !important;
+        padding: 1.3rem;
+        width: 100%;
+    }
+
+    .timeline-content h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-date {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-content p {
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    /* Organisasi Section */
+    .organisasi {
+        padding: 2.5rem 0 !important;
+    }
+
+    .organisasi .container {
+        padding: 0 20px !important;
+    }
+
+    .organisasi .section-title {
+        font-size: 1.6rem !important;
+    }
+
+    .organisasi > .container > p {
+        font-size: 0.95rem !important;
+        margin-bottom: 2rem !important;
+    }
+
+    .org-item {
+        padding: 1.3rem !important;
+        gap: 1rem !important;
+        margin-bottom: 1.2rem !important;
+        flex-direction: row !important;
+    }
+
+    .org-item > div:first-child {
+        min-width: 48px !important;
+        height: 48px !important;
+        font-size: 1.2rem !important;
+        flex-shrink: 0;
+    }
+
+    .org-item h4 {
+        font-size: 1rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+
+    .org-item p {
+        font-size: 0.85rem !important;
+    }
+
+    /* Jadwal Section */
+    .judul-jadwal {
+        width: 95% !important;
+        padding: 12px 20px !important;
+        font-size: 1.4rem !important;
+        margin: 25px auto 15px auto !important;
+        border-radius: 30px;
+    }
+
+    .judul-jadwal h2 {
+        font-size: 1.4rem;
+    }
+
+    .jadwal {
+        padding: 2rem 15px !important;
+    }
+
+    .jadwal h2 {
+        font-size: 1.4rem !important;
+    }
+
+    .jadwal p {
+        font-size: 0.9rem !important;
+        padding: 0 10px;
+        margin-bottom: 25px !important;
+        line-height: 1.5;
+    }
+
+    .jadwal-cards {
+        gap: 18px;
+        padding: 0;
+    }
+
+    .card {
+        width: 100% !important;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .card img {
+        height: 170px !important;
+    }
+
+    .card-body {
+        padding: 16px !important;
+    }
+
+    .card-body h3 {
+        font-size: 1rem !important;
+        margin-bottom: 5px;
+    }
+
+    .card-body h3 i {
+        font-size: 0.9rem;
+    }
+
+    .alamat {
+        font-size: 0.8rem !important;
+        line-height: 1.4;
+        margin-bottom: 10px !important;
+    }
+
+    table {
+        font-size: 0.82rem !important;
+        margin-top: 10px;
+    }
+
+    table th,
+    table td {
+        padding: 7px 6px !important;
+    }
+
+    table th {
+        font-size: 0.85rem;
+    }
+}
+
+/* Mobile Kecil (480px ke bawah) */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 12px !important;
+    }
+
+    .doctor-name {
+        font-size: 0.78rem;
+        padding: 7px 14px;
+    }
+
+    /* Hero */
+    .hero {
+        padding: 1.5rem 0 1rem !important;
+    }
+
+    .hero .container {
+        padding: 0 15px !important;
+    }
+
+    .hero-text h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .hero-subtitle {
+        font-size: 0.95rem !important;
+    }
+
+    .hero-text p {
+        font-size: 0.85rem !important;
+    }
+
+    /* CTA Buttons */
+    .cta-buttons {
+        gap: 0.7rem;
+    }
+
+    .cta-button.secondary {
+        width: 100% !important;
+        max-width: 100%;
+        min-height: 95px;
+        padding: 0.7rem !important;
+    }
+
+    .button-title {
+        font-size: 0.9rem !important;
+    }
+
+    .button-desc {
+        font-size: 0.65rem !important;
+    }
+
+    /* Hero Image */
+    .doctor-photo {
+        width: 150px !important;
+        height: 150px !important;
+    }
+
+    .quick-info h4 {
+        font-size: 0.9rem;
+    }
+
+    .info-item span {
+        font-size: 0.78rem;
+    }
+
+    /* Profile */
+    .profile-photo {
+        width: 110px !important;
+        height: 110px !important;
+    }
+
+    .profile-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .profile-card .specialty {
+        font-size: 0.9rem;
+    }
+
+    .credentials {
+        padding: 0.8rem;
+    }
+
+    .credentials h4 {
+        font-size: 0.9rem;
+    }
+
+    .credentials li {
+        font-size: 0.8rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem !important;
+    }
+
+    .about-text {
+        font-size: 0.85rem !important;
+    }
+
+    /* Timeline */
+    .timeline-marker {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 1.1rem;
+    }
+
+    .timeline-content {
+        padding: 1rem;
+    }
+
+    .timeline-content h4 {
+        font-size: 1rem;
+    }
+
+    .timeline-content p {
+        font-size: 0.82rem;
+    }
+
+    /* Organisasi */
+    .org-item {
+        padding: 1rem !important;
+    }
+
+    .org-item > div:first-child {
+        min-width: 42px !important;
+        height: 42px !important;
+        font-size: 1rem !important;
+    }
+
+    .org-item h4 {
+        font-size: 0.95rem !important;
+    }
+
+    .org-item p {
+        font-size: 0.8rem !important;
+    }
+
+    /* Jadwal */
+    .judul-jadwal {
+        font-size: 1.2rem !important;
+        padding: 10px 15px !important;
+    }
+
+    .judul-jadwal h2 {
+        font-size: 1.2rem;
+    }
+
+    .jadwal {
+        padding: 1.5rem 10px !important;
+    }
+
+    .jadwal h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .jadwal p {
+        font-size: 0.85rem !important;
+    }
+
+    .card {
+        max-width: 100%;
+    }
+
+    .card img {
+        height: 150px !important;
+    }
+
+    .card-body {
+        padding: 14px !important;
+    }
+
+    .card-body h3 {
+        font-size: 0.95rem !important;
+    }
+
+    .alamat {
+        font-size: 0.75rem !important;
+    }
+
+    table {
+        font-size: 0.78rem !important;
+    }
+
+    table th,
+    table td {
+        padding: 6px 4px !important;
+    }
+}
+
+/* Landscape Mode */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        padding: 1.5rem 0 !important;
+    }
+
+    .hero-content {
+        gap: 1.5rem;
+    }
+
+    .doctor-photo {
+        width: 140px !important;
+        height: 140px !important;
+    }
+
+    .hero-text h1 {
+        font-size: 1.6rem !important;
+    }
+
+    .cta-button.secondary {
+        min-height: 90px;
+    }
+}
+/* === JADWAL HORIZONTAL SCROLL - MOBILE === */
+@media (max-width: 768px) {
+    /* Jadwal Section */
+    .judul-jadwal {
+        width: 90%;
+        padding: 12px 20px;
+        font-size: 1.4rem;
+        margin: 25px auto 15px auto;
+    }
+
+    .jadwal {
+        padding: 2rem 0 !important;
+        overflow: visible !important;
+    }
+
+    .jadwal h2 {
+        font-size: 1.4rem;
+        padding: 0 15px;
+    }
+
+    .jadwal > p {
+        font-size: 0.9rem;
+        padding: 0 15px;
+        margin-bottom: 25px;
+    }
+
+    /* Container Cards - HORIZONTAL SCROLL */
+    .jadwal-cards {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: scroll !important;
+        overflow-y: visible !important;
+        gap: 15px !important;
+        padding: 10px 15px 30px 15px !important;
+        margin: 0 !important;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start !important;
+    }
+
+    /* Hide scrollbar */
+    .jadwal-cards::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Each Card */
+    .jadwal-cards .card {
+        flex: 0 0 280px !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
+        width: 280px !important;
+        margin: 0 !important;
+        display: block !important;
+    }
+
+    .card img {
+        height: 170px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .card-body h3 {
+        font-size: 1rem;
+    }
+
+    .alamat {
+        font-size: 0.8rem;
+    }
+
+    table {
+        font-size: 0.82rem;
+    }
+
+    table th,
+    table td {
+        padding: 7px 6px;
+    }
+}
     </style>
 </head>
 
