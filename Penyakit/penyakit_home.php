@@ -279,10 +279,27 @@ $stmt->execute();
     <section class="card-container" id="cardContainer">
         <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
             <div class="card" data-name="<?php echo strtolower(htmlspecialchars($row['nama'])); ?>">
-                <img src="../assets/images/<?php echo htmlspecialchars($row['gambar']); ?>" alt="<?php echo htmlspecialchars($row['nama']); ?>">
-                <h3><?php echo htmlspecialchars($row['nama']); ?></h3>
+                <?php
+                // 1. Ambil nama file saja (bersihkan jika ada path nyasar dari database)
+                $nama_file = basename($row['gambar']);
+                
+                // 2. Tentukan lokasi folder admin/assets/images
+                // Gunakan "../" karena file ini berada di dalam folder, jadi harus keluar dulu baru masuk ke admin
+                $path_gambar = "../admin/assets/images/" . $nama_file;
+                
+                // 3. (Opsional) Cek jika gambar kosong, pakai placeholder default
+                if (empty($nama_file)) {
+                    // Ganti link ini dengan gambar default Anda jika ada
+                    $path_gambar = "https://via.placeholder.com/150?text=No+Image"; 
+                }
+                ?>
+                
+                <img src="<?php echo htmlspecialchars($path_gambar); ?>" 
+                     alt="<?php echo htmlspecialchars($row['nama']); ?>"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gambar+Rusak';"> <h3><?php echo htmlspecialchars($row['nama']); ?></h3>
                 <p><?php echo htmlspecialchars($row['deskripsi']); ?></p>
-                <a href="/WebDokter/kategoriPenyakit/penyakit_kategori.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
+                
+                <a href="penyakit_kategori.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
             </div>
         <?php } ?>
     </section>
