@@ -299,7 +299,7 @@ $stmt->execute();
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=Gambar+Rusak';"> <h3><?php echo htmlspecialchars($row['nama']); ?></h3>
                 <p><?php echo htmlspecialchars($row['deskripsi']); ?></p>
                 
-                <a href="penyakit_kategori.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
+                <a href="../kategoriPenyakit/penyakit_kategori.php?id=<?php echo urlencode($row['id']); ?>">Lihat Semua Penyakit</a>
             </div>
         <?php } ?>
     </section>
