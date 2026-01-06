@@ -2,7 +2,7 @@
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical-website';
+    private $db_name = 'medical_website2';
     private $username = 'root';
     private $password = 'password'; // kosong untuk XAMPP
     private $port = '3306';
