@@ -83,17 +83,17 @@ function getCleanedImagePath($filename)
             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
             color: white;
             border: none;
-            padding: 0.875rem 2rem;
-            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
             cursor: pointer;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            transition: all 0.18s ease;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 0.75rem;
-            font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(107, 114, 128, 0.18);
         }
 
         .back-btn:hover {
@@ -293,6 +293,20 @@ function getCleanedImagePath($filename)
             .info-grid {
                 grid-template-columns: 1fr;
             }
+
+            /* Mobile: make back button full-width and touch-friendly */
+            .back-btn {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                padding: 0.6rem 0.9rem;
+                font-size: 0.95rem;
+                border-radius: 10px;
+            }
+
+            .back-btn i {
+                margin-right: 0.5rem;
+            }
         }
 
         /* Animation */
@@ -339,9 +353,9 @@ function getCleanedImagePath($filename)
 
     <div class="main-container">
         <div class="content-area">
-            <button class="back-btn" onclick="window.location.href='penyakit_kategori.php?id=<?php echo $penyakit['kategori_home_id']; ?>'">
+            <button id="backBtn" class="back-btn" data-cat-id="<?php echo htmlspecialchars($penyakit['kategori_home_id']); ?>" data-cat-name="<?php echo htmlspecialchars($penyakit['kategori_nama']); ?>">
                 <i class="fas fa-arrow-left"></i>
-                Kembali ke <?php echo htmlspecialchars($penyakit['kategori_nama']); ?>
+                <span class="back-text">Kembali</span>
             </button>
 
             <div class="disease-detail">
@@ -613,6 +627,56 @@ function getCleanedImagePath($filename)
                             closeImageModal();
                         }
                     });
+                </script>
+
+                <script>
+                    (function() {
+                        var backBtn = document.getElementById('backBtn');
+                        if (!backBtn) return;
+
+                        var catId = backBtn.getAttribute('data-cat-id') || '';
+                        var catName = backBtn.getAttribute('data-cat-name') || '';
+                        var backTextEl = backBtn.querySelector('.back-text');
+
+                        function isMobileWidth() {
+                            return window.innerWidth <= 768;
+          w              }
+
+                        function truncateName(name, max) {
+                            if (!name) return '';
+                            if (name.length <= max) return name;
+                            return name.slice(0, max - 1) + '…';
+                        }
+
+                        function updateBackText() {
+                            if (!backTextEl) return;
+                            // always show simple label 'Kembali' per user preference
+                            backTextEl.textContent = 'Kembali';
+                            // keep full category name available as tooltip/title
+                            backBtn.title = catName;
+                        }
+
+                        backBtn.addEventListener('click', function(e) {
+                            e && e.preventDefault();
+                            if (isMobileWidth()) {
+                                try {
+                                    if (document.referrer && document.referrer.length > 0) {
+                                        history.back();
+                                    } else {
+                                        window.location.href = '../Penyakit/penyakit_home.php';
+                                    }
+                                } catch (err) {
+                                    window.location.href = '../Penyakit/penyakit_home.php';
+                                }
+                            } else {
+                                window.location.href = 'penyakit_kategori.php?id=' + encodeURIComponent(catId);
+                            }
+                        });
+
+                        // initialize and update on resize
+                        updateBackText();
+                        window.addEventListener('resize', updateBackText);
+                    })();
                 </script>
 
                 <?php if (!empty($penyakit['penyebab_utama'])): ?>

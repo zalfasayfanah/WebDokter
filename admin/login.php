@@ -4,7 +4,7 @@ session_start();  // WAJIB!
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'medical_website2';
+    private $db_name = 'medical_website6';
     private $username = 'root';
     private $password = 'password'; // kosong untuk XAMPP
     private $port = '3306';
