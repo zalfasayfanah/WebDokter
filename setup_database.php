@@ -1,16 +1,16 @@
 <?php
-// Script untuk setup database medical_website
+// Script untuk setup database medical_website2
 try {
     // Koneksi tanpa database untuk membuat database
-    $pdo = new PDO("mysql:host=localhost;port=3307", "root", "");
+    $pdo = new PDO("mysql:host=localhost;port=3306", "root", "password");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Buat database jika belum ada
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS medical_website");
-    echo "Database medical_website berhasil dibuat/ditemukan.\n";
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS medical_website2");
+    echo "Database medical_website2 berhasil dibuat/ditemukan.\n";
     
     // Pilih database
-    $pdo->exec("USE medical_website");
+    $pdo->exec("USE medical_website2");
     
     // Baca dan jalankan script SQL
     $sql = file_get_contents('config/database_rs.sql');

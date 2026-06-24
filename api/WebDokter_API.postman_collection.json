@@ -1,0 +1,307 @@
+{
+  "info": {
+    "name": "WebDokter API",
+    "description": "WebDokter Mobile API Collection untuk testing dengan Postman",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Organ",
+      "item": [
+        {
+          "name": "Get All Organs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/organ.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "organ.php"
+              ]
+            },
+            "description": "Ambil daftar semua kategori organ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Penyakit",
+      "item": [
+        {
+          "name": "Get All Diseases",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/penyakit.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "penyakit.php"
+              ]
+            },
+            "description": "Ambil daftar semua penyakit"
+          }
+        },
+        {
+          "name": "Get Diseases by Organ",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/penyakit.php?organId=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "penyakit.php"
+              ],
+              "query": [
+                {
+                  "key": "organId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Ambil penyakit berdasarkan ID organ"
+          }
+        },
+        {
+          "name": "Get Disease Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/penyakit.php?id=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "penyakit.php"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Ambil detail penyakit berdasarkan ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profil Dokter",
+      "item": [
+        {
+          "name": "Get Doctor Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/profil_dokter.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "profil_dokter.php"
+              ]
+            },
+            "description": "Ambil profil dokter lengkap beserta riwayat pendidikan, sertifikat, dan keahlian khusus"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jadwal Praktik",
+      "item": [
+        {
+          "name": "Get All Schedules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/jadwal_praktek.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "jadwal_praktek.php"
+              ]
+            },
+            "description": "Ambil daftar semua jadwal praktik"
+          }
+        },
+        {
+          "name": "Get Schedule Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/jadwal_praktek.php?id=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "jadwal_praktek.php"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Ambil detail jadwal praktik berdasarkan ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Layanan Medis",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api/pelayanan.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api",
+                "pelayanan.php"
+              ]
+            },
+            "description": "Ambil daftar semua layanan medis"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API Info",
+      "item": [
+        {
+          "name": "Get API Documentation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost/WebDokter/api",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "WebDokter",
+                "api"
+              ]
+            },
+            "description": "Ambil informasi API dan list semua endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/WebDokter/api",
+      "type": "string"
+    },
+    {
+      "key": "organ_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "disease_id",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}
